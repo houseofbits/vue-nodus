@@ -1,8 +1,8 @@
 <template>
-    <div class="graph-board" ref="boardEl" @click="onBoardClick" @contextmenu.prevent>
+    <div class="graph-board grid" ref="boardEl" @click="onBoardClick" @contextmenu.prevent :style="gridTransformStyle">
         <VConnectionsLayer />
 
-        <div class="transform-wrapper" :style="computedStyle">
+        <div class="transform-wrapper" :style="transformStyle">
             <template v-for="node in props.board.graph.nodes">
                 <template v-if="node[1].isThinComponent">
                     <VBaseNode :key="node[0]" :node="node[1]" :is-selected="isSelected(node[1])"
@@ -38,13 +38,21 @@ const boardEl = ref<HTMLElement>();
 
 provide('board', props.board)
 
-const computedStyle = computed(() => {
+const transformStyle = computed(() => {
     return {
         transform: `
             translate(${props.board.view.viewport.state.panX}px,
                         ${props.board.view.viewport.state.panY}px)
             scale(${props.board.view.viewport.state.zoom})`,
         transformOrigin: '0 0',
+    };
+});
+
+const gridTransformStyle = computed(() => {
+    return {
+        '--grid-size': `${20 * props.board.view.viewport.state.zoom}px`,
+        '--grid-x': `${props.board.view.viewport.state.panX * props.board.view.viewport.state.zoom}px`,
+        '--grid-y': `${props.board.view.viewport.state.panY * props.board.view.viewport.state.zoom}px`
     };
 });
 
@@ -113,5 +121,25 @@ onUnmounted(() => {
     position: fixed;
     width: 100%;
     height: 100%;
+}
+
+.grid {
+    position: absolute;
+    inset: 0;
+    /* pointer-events: none; */
+
+    --grid-size: 20px;
+    --dot-size: 1.5px;
+
+    background-image:
+        radial-gradient(
+            circle,
+            rgba(120, 170, 255, 0.18) var(--dot-size),
+            transparent var(--dot-size)
+        );
+
+    background-size: var(--grid-size) var(--grid-size);
+
+    background-position: var(--grid-x) var(--grid-y);
 }
 </style>
