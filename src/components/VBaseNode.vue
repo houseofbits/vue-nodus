@@ -8,7 +8,7 @@
             <slot name="content" />
         </div>
 
-        <template v-if="props.node.isPortRenderingEnabled">
+        <template v-if="props.node.isPortAutoLayoutEnabled">
             <div v-if="props.node.inputs.length > 0" class="inputs"
                 :style="{ height: props.node.internalState.height }">
                 <VPort v-for="port in props.node.inputs" :key="port.id" :port="port"></VPort>

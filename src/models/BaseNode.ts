@@ -13,13 +13,13 @@ interface InternalState {
 interface SettingObject {
     isThinComponent: boolean,
     title: string,
-    isPortRenderingEnabled: boolean,
+    isPortAutoLayoutEnabled: boolean,
 }
 
 export default class BaseNode {
     id = crypto.randomUUID()
     isThinComponent: boolean = true
-    isPortRenderingEnabled: boolean = true
+    isPortAutoLayoutEnabled: boolean = true
     componentId: string
 
     inputs: Array<Port> = []
@@ -36,7 +36,7 @@ export default class BaseNode {
 
     constructor(componentId: string, inputs: Array<Port>, outputs: Array<Port>, settings: Partial<SettingObject> = {}) {
         this.isThinComponent = settings?.isThinComponent ?? this.isThinComponent;
-        this.isPortRenderingEnabled = settings?.isPortRenderingEnabled ?? this.isPortRenderingEnabled;
+        this.isPortAutoLayoutEnabled = settings?.isPortAutoLayoutEnabled ?? this.isPortAutoLayoutEnabled;
         this.internalState.title = settings?.title ?? this.internalState.title;
         this.componentId = componentId;
         this.inputs = inputs
