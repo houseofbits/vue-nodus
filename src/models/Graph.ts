@@ -68,10 +68,16 @@ export default class Graph {
             return
         }
 
+        let source = this.selectedPort.value
+        let target = port
+
         if (port.ioType === PortType.Output) {
-            this.addConnection(new Connection(port, this.selectedPort.value))
-        } else {
-            this.addConnection(new Connection(this.selectedPort.value, port))
+            source = port
+            target = this.selectedPort.value
+        }
+
+        if (this.validateInputPortConnection(target)) {
+            this.addConnection(new Connection(source, target, target.color))
         }
 
         this.selectedPort.value = null
@@ -83,5 +89,16 @@ export default class Graph {
 
     bringToFront(node: BaseNode) {
         node.setZIndex(this.nextZIndex++)
+    }
+
+    private validateInputPortConnection(port: Port) {
+        if (port.isMultiport === false) {
+            const value = [...this.connections.values()].find(con => con.targetPortId === port.id)
+            if (value) {
+                return false
+            }
+        }
+
+        return true
     }
 }

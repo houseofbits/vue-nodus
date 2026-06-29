@@ -8,17 +8,22 @@
             <slot name="content" />
         </div>
 
-        <div v-if="props.node.inputs.length > 0" class="inputs" :style="{ height: props.node.height }">
-            <VPort v-for="port in props.node.inputs" :key="port.id" :port="port"></VPort>
-        </div>
-        <div v-if="props.node.outputs.length > 0" class="outputs" :style="{ height: props.node.height }">
-            <VPort v-for="port in props.node.outputs" :key="port.id" :port="port"></VPort>
-        </div>
+        <template v-if="props.node.isPortRenderingEnabled">
+            <div v-if="props.node.inputs.length > 0" class="inputs"
+                :style="{ height: props.node.internalState.height }">
+                <VPort v-for="port in props.node.inputs" :key="port.id" :port="port"></VPort>
+            </div>
+            <div v-if="props.node.outputs.length > 0" class="outputs"
+                :style="{ height: props.node.internalState.height }">
+                <VPort v-for="port in props.node.outputs" :key="port.id" :port="port"></VPort>
+            </div>
+        </template>
     </div>
 </template>
 
 <script lang="ts" setup>
 import BaseNode from '../models/BaseNode.js';
+import VNodeRow from './VNodeRow.vue';
 import VPort from './VPort.vue'
 
 const props = defineProps({
@@ -45,10 +50,12 @@ const props = defineProps({
     border-radius: 12px;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
     transition: border 100ms linear;
+    overflow: visible;
 }
 
 .selected {
-    border: 2px solid white;
+    outline: 4px solid rgba(255, 255, 255, 1);
+    outline-offset: 0;
 }
 
 .title-bar {
@@ -87,14 +94,12 @@ const props = defineProps({
 .window-content {
     flex: 1;
     background-color: #cfcfcf;
-    padding: 12px;
-    overflow: auto;
+    overflow: visible;
     border-bottom: 1px solid #ffffff;
     border-left: 1px solid #ffffff;
     border-right: 1px solid #ffffff;
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
-    overflow: hidden;
 }
 
 .inputs {

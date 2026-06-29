@@ -13,12 +13,14 @@ interface InternalState {
 interface SettingObject {
     isThinComponent: boolean,
     title: string,
+    isPortRenderingEnabled: boolean,
 }
 
 export default class BaseNode {
     id = crypto.randomUUID()
-    isThinComponent: boolean = false
-    componentId: string;
+    isThinComponent: boolean = true
+    isPortRenderingEnabled: boolean = true
+    componentId: string
 
     inputs: Array<Port> = []
     outputs: Array<Port> = []
@@ -33,8 +35,9 @@ export default class BaseNode {
     })
 
     constructor(componentId: string, inputs: Array<Port>, outputs: Array<Port>, settings: Partial<SettingObject> = {}) {
-        this.isThinComponent = settings?.isThinComponent ?? true;
-        this.internalState.title = settings?.title ?? '';
+        this.isThinComponent = settings?.isThinComponent ?? this.isThinComponent;
+        this.isPortRenderingEnabled = settings?.isPortRenderingEnabled ?? this.isPortRenderingEnabled;
+        this.internalState.title = settings?.title ?? this.internalState.title;
         this.componentId = componentId;
         this.inputs = inputs
         this.outputs = outputs
@@ -83,7 +86,6 @@ export default class BaseNode {
         this.internalState.width = typedData.width ?? this.internalState.width;
         this.internalState.height = typedData.height ?? this.internalState.height;
         this.internalState.title = typedData.title ?? this.internalState.title;
-
     }
 
     private serializePorts() {
@@ -103,6 +105,8 @@ export default class BaseNode {
                 ioType: port.ioType,
                 color: port.color,
             }
-        }        
+        }   
+        
+        return data
     }
 }

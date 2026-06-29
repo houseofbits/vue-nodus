@@ -1,13 +1,14 @@
 <template>
     <svg v-for="connection in board.graph.connections" :key="connection[0]" class="connections">
         <g :transform="cameraStyle">
-            <path :d="board.view.getSVGPath(connection[1])" stroke="white" fill="none" stroke-width="4" />
+            <path :d="board.view.getSVGPath(connection[1])" :stroke="connection[1].color" fill="none"
+                stroke-width="4" />
         </g>
     </svg>
     <svg v-if="board.graph.selectedPort.value" class="connections">
         <g :transform="cameraStyle">
-            <path :d="board.view.getActiveSVGPath(board.graph.selectedPort.value)" stroke="white" fill="none"
-                stroke-width="4" />
+            <path :d="board.view.getActiveSVGPath(board.graph.selectedPort.value)"
+                :stroke="board.graph.selectedPort.value.color" fill="none" stroke-width="4" />
         </g>
     </svg>
 </template>

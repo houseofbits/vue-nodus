@@ -54,13 +54,15 @@ const style = computed(() => {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    border: 1px solid white;
+    /* border: 1px solid white; */
     background-color: white;
 }
 
 .port:hover {
-    border-radius: 50%;
-    border: 3px solid white;
+    /* border-radius: 50%;
+    border: 3px solid white; */
+    outline: 3px solid rgba(255, 255, 255, 1);
+    outline-offset: 0;
     cursor: pointer;
 }
 </style>
