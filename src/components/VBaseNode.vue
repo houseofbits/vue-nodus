@@ -1,10 +1,10 @@
 <template>
-    <div class="node" :class="{ selected: isSelected }">
-        <div class="title-bar">
+    <div class="nodus-node" :class="{ 'nodus-selected': isSelected }">
+        <div class="nodus-title-bar">
             <slot name="title">{{ node.internalState.title }}</slot>
         </div>
 
-        <div class="window-content">
+        <div class="nodus-window-content">
             <slot name="content" />
         </div>
 
@@ -40,10 +40,10 @@ const props = defineProps({
 </script>
 
 <style scoped>
-.node {
+.nodus-node {
     position: absolute;
-    width: 400px;
-    height: 400px;
+    width: auto;
+    height: auto;
     display: flex;
     display: flex;
     flex-direction: column;
@@ -53,17 +53,19 @@ const props = defineProps({
     overflow: visible;
 }
 
-.selected {
+.nodus-selected {
     outline: 4px solid rgba(255, 255, 255, 1);
     outline-offset: 0;
 }
 
-.title-bar {
-    height: 18px;
+.nodus-title-bar {
+    height: auto;
     background: #0084b8;
     background: linear-gradient(14deg, rgba(0, 132, 184, 1) 0%, rgba(91, 176, 175, 1) 100%);
     color: white;
-    padding: 8px 8px;
+    padding: 8px;
+    padding-top:4px;
+    padding-bottom:4px;
     font-weight: 600;
     font-size: 14px;
     flex-shrink: 0;
@@ -82,16 +84,7 @@ const props = defineProps({
     overflow: hidden;
 }
 
-.target-selected {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: rgb(0, 0, 0);
-    opacity: 0.5;
-    border-radius: 12px;
-}
-
-.window-content {
+.nodus-window-content {
     flex: 1;
     background-color: #cfcfcf;
     overflow: visible;
@@ -100,6 +93,8 @@ const props = defineProps({
     border-right: 1px solid #ffffff;
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
+    min-width: 30px;
+    min-height: 30px;
 }
 
 .inputs {

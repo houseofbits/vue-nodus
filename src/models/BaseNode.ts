@@ -5,8 +5,8 @@ interface InternalState {
     x: number
     y: number
     zIndex: number
-    width: number
-    height: number
+    width: number | null
+    height: number | null
     title: string,
 }
 
@@ -14,6 +14,8 @@ interface SettingObject {
     isThinComponent: boolean,
     title: string,
     isPortAutoLayoutEnabled: boolean,
+    width: number | null,
+    height: number | null,
 }
 
 export default class BaseNode {
@@ -29,8 +31,8 @@ export default class BaseNode {
         x: 0,
         y: 0,
         zIndex: 0,
-        width: 300,
-        height: 300,
+        width: null,
+        height: null,
         title: '',
     })
 
@@ -38,6 +40,8 @@ export default class BaseNode {
         this.isThinComponent = settings?.isThinComponent ?? this.isThinComponent;
         this.isPortAutoLayoutEnabled = settings?.isPortAutoLayoutEnabled ?? this.isPortAutoLayoutEnabled;
         this.internalState.title = settings?.title ?? this.internalState.title;
+        this.internalState.width = settings?.width ?? this.internalState.width;
+        this.internalState.height = settings?.height ?? this.internalState.height;
         this.componentId = componentId;
         this.inputs = inputs
         this.outputs = outputs

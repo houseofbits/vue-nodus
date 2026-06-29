@@ -65,13 +65,21 @@ function isSelected(node: BaseNode) {
 }
 
 function getNodeStyle(node: BaseNode) {
-    return {
-        width: `${node.internalState.width}px`,
-        height: `${node.internalState.height}px`,
+    const values: Record<string, any> = {
         left: `${node.internalState.x}px`,
         top: `${node.internalState.y}px`,
         zIndex: node.internalState.zIndex,
     }
+
+    if (node.internalState.width !== null) {
+        values['width'] = `${node.internalState.width}px`
+    }
+
+    if (node.internalState.height !== null) {
+        values['height'] = `${node.internalState.height}px`
+    }
+
+    return values
 }
 
 function getComponent(node: BaseNode) {
