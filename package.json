@@ -1,0 +1,40 @@
+{
+  "name": "@houseofbits/vue-nodus",
+  "version": "0.1.0",
+  "description": "A Vue 3 node editor and blueprint library.",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "tsc": "vue-tsc --noEmit",
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.3",
+    "@vitejs/plugin-vue": "^6.0.6",
+    "@vue/tsconfig": "^0.9.1",
+    "typescript": "^5.9.2",
+    "vite": "^8.0.12",
+    "vite-plugin-dts": "^5.0.3",
+    "vite-plugin-lib-inject-css": "^2.2.2",
+    "vue-tsc": "^3.3.5"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
