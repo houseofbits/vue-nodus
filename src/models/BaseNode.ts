@@ -64,6 +64,8 @@ export default class BaseNode {
         this.internalState.y = y
     }
 
+    compute(): void {}
+
     serialize() {
         return {}
     }
@@ -76,9 +78,7 @@ export default class BaseNode {
         }
     }
 
-    deserialize(data: Object) {
-
-    }
+    deserialize(data: Object) {}
 
     deserializeInternal(data: Object) {
         this.deserialize(data)
@@ -90,6 +90,16 @@ export default class BaseNode {
         this.internalState.width = typedData.width ?? this.internalState.width;
         this.internalState.height = typedData.height ?? this.internalState.height;
         this.internalState.title = typedData.title ?? this.internalState.title;
+
+        const portData = (data as any).ports
+        if (portData) {
+            for (const port of [...this.inputs, ...this.outputs]) {
+                const saved = portData[port.id]
+                if (saved && saved.value !== undefined) {
+                    port.value = saved.value
+                }
+            }
+        }
     }
 
     private serializePorts() {
@@ -100,6 +110,7 @@ export default class BaseNode {
                 type: port.type,
                 ioType: port.ioType,
                 color: port.color,
+                value: port.value,
             }
         }
         for (const port of this.outputs) {
@@ -108,9 +119,10 @@ export default class BaseNode {
                 type: port.type,
                 ioType: port.ioType,
                 color: port.color,
+                value: port.value,
             }
-        }   
-        
+        }
+
         return data
     }
 }

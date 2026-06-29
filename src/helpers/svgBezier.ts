@@ -1,7 +1,8 @@
-export function buildBezierPath(x1: number, y1: number, x2: number, y2: number, invert = false) {
+export function buildBezierPath(x1: number, y1: number, x2: number, y2: number, invert = false): string {
     const dx = x2 - x1;
+    const dy = y2 - y1;
 
-    let cpOffset = Math.max(Math.abs(dx) * 0.5, 80);
+    let cpOffset = Math.max(Math.abs(dx) * 0.5, Math.abs(dy) * 0.5, 80);
 
     if (invert) {
         cpOffset = -cpOffset;

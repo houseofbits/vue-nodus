@@ -1,13 +1,13 @@
 <template>
     <svg v-for="connection in board.graph.connections" :key="connection[0]" class="connections">
         <g :transform="cameraStyle">
-            <path :d="board.view.getSVGPath(connection[1])" :stroke="connection[1].color" fill="none"
+            <path :d="getSVGPath(connection[1])" :stroke="connection[1].color" fill="none"
                 stroke-width="4" />
         </g>
     </svg>
     <svg v-if="board.graph.selectedPort.value" class="connections">
         <g :transform="cameraStyle">
-            <path :d="board.view.getActiveSVGPath(board.graph.selectedPort.value)"
+            <path :d="getActiveSVGPath(board.graph.selectedPort.value)"
                 :stroke="board.graph.selectedPort.value.color" fill="none" stroke-width="4" />
         </g>
     </svg>
@@ -16,9 +16,26 @@
 <script lang="ts" setup>
 
 import { inject, computed } from 'vue'
-import { Board } from '../models';
+import { Board, Connection, Port } from '../models';
 
-const board = inject('board') as Board
+const board = inject<Board>('board')
+if (!board) throw new Error('VConnectionsLayer must be used inside VGraph')
+
+function getSVGPath(connection: Connection): string {
+    try {
+        return board.view.getSVGPath(connection)
+    } catch {
+        return ''
+    }
+}
+
+function getActiveSVGPath(port: Port): string {
+    try {
+        return board.view.getActiveSVGPath(port) ?? ''
+    } catch {
+        return ''
+    }
+}
 
 const cameraStyle = computed(() => {
     return `translate(${board.view.viewport.state.panX}, ${board.view.viewport.state.panY}) scale(${board.view.viewport.state.zoom})`

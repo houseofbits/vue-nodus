@@ -6,18 +6,15 @@
             <VPort :port="props.inputPort"/>
         </div>
         <div class="output-port" v-if="props.outputPort">
-            <VPort v-if="props.outputPort" :port="props.outputPort"/>
+            <VPort :port="props.outputPort"/>
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
 
-import { ref, onMounted, onUnmounted, inject, computed } from 'vue'
-import { Board, Port } from '../models';
+import { Port } from '../models';
 import VPort from './VPort.vue';
-
-const board = inject('board') as Board
 
 const props = defineProps({
     inputPort: {

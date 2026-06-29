@@ -7,7 +7,8 @@
 import { ref, onMounted, onUnmounted, inject, computed } from 'vue'
 import { Board, Port } from '../models';
 
-const board = inject('board') as Board
+const board = inject<Board>('board')
+if (!board) throw new Error('VPort must be used inside VGraph')
 
 const props = defineProps({
     port: {
@@ -17,7 +18,7 @@ const props = defineProps({
 });
 
 const portEl = ref<HTMLElement>()
-let observer: ResizeObserver
+let observer: ResizeObserver | null = null
 
 onMounted(() => {
     if (portEl.value === undefined) {
@@ -35,7 +36,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-    observer.disconnect()
+    observer?.disconnect()
 
     board.view.portRegistry.unregister(props.port.id);
 

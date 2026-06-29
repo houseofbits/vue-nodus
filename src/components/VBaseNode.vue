@@ -23,7 +23,6 @@
 
 <script lang="ts" setup>
 import BaseNode from '../models/BaseNode.js';
-import VNodeRow from './VNodeRow.vue';
 import VPort from './VPort.vue'
 
 const props = defineProps({
@@ -44,7 +43,6 @@ const props = defineProps({
     position: absolute;
     width: auto;
     height: auto;
-    display: flex;
     display: flex;
     flex-direction: column;
     border-radius: 12px;

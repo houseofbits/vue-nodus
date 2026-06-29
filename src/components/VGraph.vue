@@ -13,7 +13,7 @@
                     </VBaseNode>
                 </template>
 
-                <component v-else :is="getComponent(node[1])" v-for="node in board.graph.nodes" :key="node[0]" :node="node"
+                <component v-else :is="getComponent(node[1])" :key="node[0]" :node="node[1]"
                     :is-selected="isSelected(node[1])" :style="getNodeStyle(node[1])"
                     @mousedown="e => onNodeClick(e, node[1])" />
             </template>
@@ -48,8 +48,8 @@ const computedStyle = computed(() => {
     };
 });
 
-function onBoardClick(event) {
-    const clickedNode = event.target.closest('.node')
+function onBoardClick(event: MouseEvent) {
+    const clickedNode = (event.target as Element).closest('.nodus-node')
 
     if (!clickedNode) {
         props.board.view.selection.clear()

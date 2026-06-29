@@ -114,6 +114,7 @@ export default class View {
     }
 
     mount(element: HTMLElement) {
+        this.unmount()
         this.boardElement = element
 
         this.boardElement.addEventListener('mousemove', this._onMove)
