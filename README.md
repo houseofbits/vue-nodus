@@ -149,6 +149,75 @@ new NodusBaseNode('my-node', inputs, outputs, {
 
 Set `isThinComponent: false` when your component handles its own outer shell (no `VBaseNode` wrapper).
 
+## Theming
+
+All visual tokens are exposed as CSS custom properties. Pass a `theme` prop to `VGraph` for a typed API, or override the CSS variables on any ancestor element.
+
+### Via the `theme` prop
+
+```vue
+<VGraph :board="board" :theme="{
+  canvasBg: '#1a1a2e',
+  nodeTitleBg: '#6a0dad',
+  nodeTitleColor: '#fff',
+  nodeContentBg: '#2a2a3e',
+  nodeContentBorderColor: '#3a3a5e',
+  nodeTitleBorderColor: '#8a4fbf',
+  nodeTitleBottomBorder: '#4a1a7e',
+  gridDotColor: 'rgba(180, 120, 255, 0.2)',
+}" />
+```
+
+Import the `NodusTheme` type for typed theme objects:
+
+```ts
+import type { NodusTheme } from '@houseofbits/vue-nodus'
+
+const darkTheme: Partial<NodusTheme> = {
+  canvasBg: '#1a1a2e',
+  nodeTitleBg: '#6a0dad',
+}
+```
+
+### Via CSS custom properties
+
+Set variables on any ancestor element — they cascade naturally to all components inside that container.
+
+```css
+.my-editor {
+  --nodus-canvas-bg: #1a1a2e;
+  --nodus-node-title-bg: #6a0dad;
+  --nodus-node-content-bg: #2a2a3e;
+  --nodus-port-size: 16px;
+}
+```
+
+### Available tokens
+
+| Token | Default | Description |
+|---|---|---|
+| `--nodus-canvas-bg` | `rgb(48, 48, 48)` | Canvas background color |
+| `--nodus-grid-dot-color` | `rgba(120, 170, 255, 0.18)` | Grid dot color |
+| `--nodus-grid-dot-size` | `1.5px` | Grid dot radius |
+| `--nodus-node-border-radius` | `8px` | Node corner radius |
+| `--nodus-node-shadow` | `0 6px 15px rgba(0,0,0,0.2)` | Node drop shadow |
+| `--nodus-node-selection-color` | `rgba(255,255,255,1)` | Selection outline color |
+| `--nodus-node-selection-width` | `4px` | Selection outline width |
+| `--nodus-node-title-bg` | blue gradient | Title bar background (accepts any CSS `background` value) |
+| `--nodus-node-title-color` | `white` | Title bar text color |
+| `--nodus-node-title-border-color` | `#82c2ff` | Title bar top/left/right border color |
+| `--nodus-node-title-bottom-border` | `#005a9e` | Title bar bottom border color |
+| `--nodus-node-content-bg` | `#cfcfcf` | Node content area background |
+| `--nodus-node-content-border-color` | `#ffffff` | Node content area border color |
+| `--nodus-port-size` | `20px` | Port circle diameter |
+| `--nodus-port-hover-outline-color` | `rgba(255,255,255,1)` | Port hover outline color |
+| `--nodus-port-hover-outline-width` | `3px` | Port hover outline width |
+| `--nodus-connection-width` | `4` | Connection stroke width (SVG user units) |
+| `--nodus-connection-selection-color` | `white` | Selected connection outline color |
+| `--nodus-connection-selection-width` | `12` | Selected connection outline width |
+
+Port and connection **colors** are set per-instance via `NodusPort.color` and `NodusConnection.color`.
+
 ## Interactivity
 
 | Action | Gesture |
@@ -299,6 +368,7 @@ Accessed via `board.serializer`.
 | Prop | Type | Required | Description |
 |---|---|---|---|
 | `board` | `NodusBoard` | yes | The board instance to render |
+| `theme` | `Partial<NodusTheme>` | no | Override visual tokens (see [Theming](#theming)) |
 
 ### Component: `VBaseNode`
 

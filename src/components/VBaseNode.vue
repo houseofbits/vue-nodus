@@ -45,62 +45,60 @@ const props = defineProps({
     height: auto;
     display: flex;
     flex-direction: column;
-    border-radius: 8px;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    border-radius: var(--nodus-node-border-radius, 8px);
+    box-shadow: var(--nodus-node-shadow, 0 6px 15px rgba(0, 0, 0, 0.2));
     transition: border 100ms linear;
     overflow: visible;
 }
 
 .nodus-selected {
-    outline: 4px solid rgba(255, 255, 255, 1);
+    outline: var(--nodus-node-selection-width, 4px) solid var(--nodus-node-selection-color, rgba(255, 255, 255, 1));
     outline-offset: 0;
 }
 
 .nodus-title-bar {
     height: auto;
-    background: #0084b8;
-    background: linear-gradient(14deg, rgba(0, 132, 184, 1) 0%, rgba(91, 176, 175, 1) 100%);
-    color: white;
+    background: var(--nodus-node-title-bg, linear-gradient(14deg, rgba(0, 132, 184, 1) 0%, rgba(91, 176, 175, 1) 100%));
+    color: var(--nodus-node-title-color, white);
     padding: 8px;
     padding-top:4px;
     padding-bottom:4px;
     font-weight: 600;
     font-size: 14px;
     flex-shrink: 0;
-    border-bottom: 1px solid #005a9e;
+    border-bottom: 1px solid var(--nodus-node-title-bottom-border, #005a9e);
     user-select: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    border-top: 1px solid #82c2ff;
-    border-left: 1px solid #82c2ff;
-    border-right: 1px solid #82c2ff;
+    border-top-left-radius: var(--nodus-node-border-radius, 8px);
+    border-top-right-radius: var(--nodus-node-border-radius, 8px);
+    border-top: 1px solid var(--nodus-node-title-border-color, #82c2ff);
+    border-left: 1px solid var(--nodus-node-title-border-color, #82c2ff);
+    border-right: 1px solid var(--nodus-node-title-border-color, #82c2ff);
     cursor: grab;
-    user-select: none;
     overflow: hidden;
 }
 
 .nodus-window-content {
     flex: 1;
-    background-color: #cfcfcf;
+    background-color: var(--nodus-node-content-bg, #cfcfcf);
     overflow: visible;
-    border-bottom: 1px solid #ffffff;
-    border-left: 1px solid #ffffff;
-    border-right: 1px solid #ffffff;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
+    border-bottom: 1px solid var(--nodus-node-content-border-color, #ffffff);
+    border-left: 1px solid var(--nodus-node-content-border-color, #ffffff);
+    border-right: 1px solid var(--nodus-node-content-border-color, #ffffff);
+    border-bottom-left-radius: var(--nodus-node-border-radius, 8px);
+    border-bottom-right-radius: var(--nodus-node-border-radius, 8px);
     min-width: 30px;
     min-height: 30px;
 }
 
 .inputs {
     height: 100%;
-    width: 40px;
+    width: calc(var(--nodus-port-size, 20px) * 2);
     position: absolute;
     bottom: 0;
-    left: -20px;
+    left: calc(var(--nodus-port-size, 20px) * -1);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -109,10 +107,10 @@ const props = defineProps({
 
 .outputs {
     height: 100%;
-    width: 40px;
+    width: calc(var(--nodus-port-size, 20px) * 2);
     position: absolute;
     bottom: 0;
-    right: -20px;
+    right: calc(var(--nodus-port-size, 20px) * -1);
     display: flex;
     flex-direction: column;
     align-items: center;

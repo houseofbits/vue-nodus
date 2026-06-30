@@ -59,15 +59,14 @@ const isInactive = computed(() => {
 
 <style scoped>
 .port {
-    width: 20px;
-    height: 20px;
+    width: var(--nodus-port-size, 20px);
+    height: var(--nodus-port-size, 20px);
     border-radius: 50%;
-    /* border: 1px solid white; */
     background-color: white;
 }
 
 .port:not(.port--inactive):hover {
-    outline: 3px solid rgba(255, 255, 255, 1);
+    outline: var(--nodus-port-hover-outline-width, 3px) solid var(--nodus-port-hover-outline-color, rgba(255, 255, 255, 1));
     outline-offset: 0;
     cursor: pointer;
 }

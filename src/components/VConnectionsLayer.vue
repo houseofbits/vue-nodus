@@ -19,11 +19,10 @@
             <path
                 v-if="board.view.selection.isConnectionSelected(connection)"
                 :d="getSVGPath(connection)"
-                stroke="white"
-                stroke-width="12"
                 fill="none"
                 stroke-linecap="round"
                 stroke-linejoin="round"
+                :style="{ stroke: 'var(--nodus-connection-selection-color, white)', strokeWidth: 'var(--nodus-connection-selection-width, 12)' }"
             />
 
             <!-- Visible connection -->
@@ -31,7 +30,7 @@
                 :d="getSVGPath(connection)"
                 :stroke="connection.color"
                 fill="none"
-                stroke-width="4"
+                :style="{ strokeWidth: 'var(--nodus-connection-width, 4)' }"
                 @click.stop="selectConnection(connection, $event)"
             />
             </template>
@@ -40,7 +39,7 @@
     <svg v-if="board.graph.selectedPort.value" class="connections">
         <g :transform="cameraStyle">
             <path :d="getActiveSVGPath(board.graph.selectedPort.value)" :stroke="board.graph.selectedPort.value.color"
-                fill="none" stroke-width="4" />
+                fill="none" :style="{ strokeWidth: 'var(--nodus-connection-width, 4)' }" />
         </g>
     </svg>
 </template>

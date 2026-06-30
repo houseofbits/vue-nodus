@@ -1,5 +1,5 @@
 <template>
-    <div class="graph-board grid" ref="boardEl" @click="onBoardClick" @contextmenu.prevent :style="gridTransformStyle">
+    <div class="graph-board grid" ref="boardEl" @click="onBoardClick" @contextmenu.prevent :style="boardStyle">
         <VConnectionsLayer />
 
         <div class="transform-wrapper" :style="transformStyle">
@@ -25,14 +25,20 @@
 <script lang="ts" setup>
 import { NodusBaseNode, NodusBoard } from '../models';
 import { computed, onMounted, onUnmounted, provide, ref } from 'vue';
+import type { PropType } from 'vue';
 import VConnectionsLayer from './VConnectionsLayer.vue';
 import VBaseNode from './VBaseNode.vue';
+import type { NodusTheme } from '../theme.js';
 
 const props = defineProps({
     board: {
         type: NodusBoard,
         required: true,
-    }
+    },
+    theme: {
+        type: Object as PropType<Partial<NodusTheme>>,
+        default: () => ({}),
+    },
 })
 
 const boardEl = ref<HTMLElement>();
@@ -63,6 +69,34 @@ const gridTransformStyle = computed(() => {
         '--grid-y': `${props.board.view.viewport.state.panY * props.board.view.viewport.state.zoom}px`
     };
 });
+
+const themeVars = computed(() => {
+    const t = props.theme ?? {}
+    const map: Record<string, string | number | undefined> = {
+        '--nodus-canvas-bg': t.canvasBg,
+        '--nodus-grid-dot-color': t.gridDotColor,
+        '--nodus-grid-dot-size': t.gridDotSize,
+        '--nodus-node-border-radius': t.nodeBorderRadius,
+        '--nodus-node-shadow': t.nodeShadow,
+        '--nodus-node-selection-color': t.nodeSelectionColor,
+        '--nodus-node-selection-width': t.nodeSelectionWidth,
+        '--nodus-node-title-bg': t.nodeTitleBg,
+        '--nodus-node-title-color': t.nodeTitleColor,
+        '--nodus-node-title-border-color': t.nodeTitleBorderColor,
+        '--nodus-node-title-bottom-border': t.nodeTitleBottomBorder,
+        '--nodus-node-content-bg': t.nodeContentBg,
+        '--nodus-node-content-border-color': t.nodeContentBorderColor,
+        '--nodus-port-size': t.portSize,
+        '--nodus-port-hover-outline-color': t.portHoverOutlineColor,
+        '--nodus-port-hover-outline-width': t.portHoverOutlineWidth,
+        '--nodus-connection-width': t.connectionWidth,
+        '--nodus-connection-selection-color': t.connectionSelectionColor,
+        '--nodus-connection-selection-width': t.connectionSelectionWidth,
+    }
+    return Object.fromEntries(Object.entries(map).filter(([, v]) => v !== undefined))
+})
+
+const boardStyle = computed(() => ({ ...gridTransformStyle.value, ...themeVars.value }))
 
 function onBoardClick(event: MouseEvent) {
     const clickedNode = (event.target as Element).closest('.nodus-node')
@@ -123,7 +157,7 @@ onUnmounted(() => {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background-color: rgb(48, 48, 48);
+    background-color: var(--nodus-canvas-bg, rgb(48, 48, 48));
 }
 
 .transform-wrapper {
@@ -142,11 +176,11 @@ onUnmounted(() => {
     inset: 0;
 
     --grid-size: 20px;
-    --dot-size: 1.5px;
+    --dot-size: var(--nodus-grid-dot-size, 1.5px);
 
     background-image:
         radial-gradient(circle,
-            rgba(120, 170, 255, 0.18) var(--dot-size),
+            var(--nodus-grid-dot-color, rgba(120, 170, 255, 0.18)) var(--dot-size),
             transparent var(--dot-size));
 
     background-size: var(--grid-size) var(--grid-size);
