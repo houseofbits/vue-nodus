@@ -1,5 +1,5 @@
 <template>
-    <div :style="style" class="port" ref="portEl" @mousedown.stop.prevent="board.graph.selectPort(props.port)" />
+    <div :style="style" :class="['port', { 'port--inactive': isInactive }]" ref="portEl" @mousedown.stop.prevent="board.graph.selectPort(props.port)" />
 </template>
 
 <script lang="ts" setup>
@@ -48,6 +48,13 @@ const style = computed(() => {
     }
 })
 
+const isInactive = computed(() => {
+    const selected = board.graph.selectedPort.value
+    if (!selected) return false
+    if (selected.id === props.port.id) return false
+    return selected.ioType === props.port.ioType || selected.type !== props.port.type
+})
+
 </script>
 
 <style scoped>
@@ -59,11 +66,14 @@ const style = computed(() => {
     background-color: white;
 }
 
-.port:hover {
-    /* border-radius: 50%;
-    border: 3px solid white; */
+.port:not(.port--inactive):hover {
     outline: 3px solid rgba(255, 255, 255, 1);
     outline-offset: 0;
     cursor: pointer;
+}
+
+.port--inactive {
+    opacity: 0.25;
+    cursor: not-allowed;
 }
 </style>
