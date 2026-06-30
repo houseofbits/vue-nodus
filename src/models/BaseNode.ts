@@ -74,6 +74,8 @@ export default class BaseNode {
         return {
             ...this.serialize(),
             ...this.internalState,
+            id: this.id,
+            componentId: this.componentId,
             ports: this.serializePorts()
         }
     }
@@ -83,22 +85,33 @@ export default class BaseNode {
     deserializeInternal(data: Object) {
         this.deserialize(data)
 
-        const typedData = data as Partial<InternalState>
-        this.internalState.x = typedData.x ?? this.internalState.x;
-        this.internalState.y = typedData.y ?? this.internalState.y;
-        this.internalState.zIndex = typedData.zIndex ?? this.internalState.zIndex;
-        this.internalState.width = typedData.width ?? this.internalState.width;
-        this.internalState.height = typedData.height ?? this.internalState.height;
-        this.internalState.title = typedData.title ?? this.internalState.title;
+        const typedData = data as any
+        if (typedData.id) this.id = typedData.id
 
-        const portData = (data as any).ports
+        this.internalState.x = typedData.x ?? this.internalState.x
+        this.internalState.y = typedData.y ?? this.internalState.y
+        this.internalState.zIndex = typedData.zIndex ?? this.internalState.zIndex
+        this.internalState.width = typedData.width ?? this.internalState.width
+        this.internalState.height = typedData.height ?? this.internalState.height
+        this.internalState.title = typedData.title ?? this.internalState.title
+
+        const portData = typedData.ports
         if (portData) {
-            for (const port of [...this.inputs, ...this.outputs]) {
-                const saved = portData[port.id]
-                if (saved && saved.value !== undefined) {
-                    port.value = saved.value
-                }
-            }
+            const savedInputs = Object.values(portData).filter((p: any) => p.ioType === PortType.Input)
+            const savedOutputs = Object.values(portData).filter((p: any) => p.ioType === PortType.Output)
+
+            this.inputs.forEach((port, i) => {
+                const saved = savedInputs[i] as any
+                if (!saved) return
+                port.id = saved.id
+                if (saved.value !== undefined) port.value = saved.value
+            })
+            this.outputs.forEach((port, i) => {
+                const saved = savedOutputs[i] as any
+                if (!saved) return
+                port.id = saved.id
+                if (saved.value !== undefined) port.value = saved.value
+            })
         }
     }
 
