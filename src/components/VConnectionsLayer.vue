@@ -12,12 +12,12 @@
                 stroke="transparent"
                 stroke-width="16"
                 style="cursor:pointer"
-                @click.stop="selectConnection(connection)"
+                @click.stop="selectConnection(connection, $event)"
             />
 
             <!-- Selection outline -->
             <path
-                v-if="board.graph.selectedConnection.value?.id === id"
+                v-if="board.view.selection.isConnectionSelected(connection)"
                 :d="getSVGPath(connection)"
                 stroke="white"
                 stroke-width="12"
@@ -32,7 +32,7 @@
                 :stroke="connection.color"
                 fill="none"
                 stroke-width="4"
-                @click.stop="selectConnection(connection)"
+                @click.stop="selectConnection(connection, $event)"
             />
             </template>
         </g>
@@ -69,9 +69,8 @@ function getActiveSVGPath(port: Port): string | undefined {
     }
 }
 
-function selectConnection(connection: Connection) {
-    board?.graph.selectConnection(connection)
-    board?.view.selection.clear()
+function selectConnection(connection: Connection, event: MouseEvent) {
+    board?.view.selection.selectConnection(connection, event.shiftKey)
     board?.graph.clearPortSelection()
 }
 

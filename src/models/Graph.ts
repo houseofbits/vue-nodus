@@ -7,7 +7,6 @@ export default class Graph {
     nodes: Map<string, BaseNode> = reactive(new Map())
     connections: Map<string, Connection> = reactive(new Map())
     selectedPort = shallowRef<Port | null>(null)
-    selectedConnection = shallowRef<Connection | null>(null)
     nextZIndex = 1
 
     private portToNode: Map<string, BaseNode> = new Map()
@@ -70,7 +69,6 @@ export default class Graph {
     }
 
     removeConnection(id: string) {
-        this.clearConnectionSelection()
         const stop = this.connectionWatchers.get(id)
         if (stop) {
             stop()
@@ -229,11 +227,4 @@ export default class Graph {
         return true
     }
 
-    selectConnection(connection: Connection) {
-        this.selectedConnection.value = connection
-    }
-
-    clearConnectionSelection() {
-        this.selectedConnection.value = null
-    }
 }

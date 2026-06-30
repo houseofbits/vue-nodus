@@ -41,18 +41,10 @@ export default class View {
     }
 
     nodeDragStart(node: BaseNode, event: MouseEvent) {
-        if (!event.shiftKey && !this.selection.isSelected(node)) {
-            this.selection.clear()
-        }
-
-        this.selection.select(node)
-
+        this.selection.selectNode(node, event.shiftKey)
         this.dragStartWorld = this.viewport.screenToWorld(event.clientX, event.clientY)
-
         this.selection.snapshotPositions()
-
         this.state.isDraggingNode = true;
-
         if (this.selection.getSelected().length === 1) {
             this.graph.bringToFront(node)
         }
@@ -105,16 +97,13 @@ export default class View {
 
     onKeyDown(e: KeyboardEvent) {
         if (e.key === "Delete") {
-            if (this.graph.selectedConnection.value) {
-                this.graph.removeConnection(this.graph.selectedConnection.value.id)
+            for (const conn of this.selection.getSelectedConnections()) {
+                this.graph.removeConnection(conn.id)
             }
-
-            if (this.selection.getSelected().length > 0) {
-                for(const selected of this.selection.getSelected()) {
-                    this.graph.removeNode(selected.node.id)
-                }
-                this.selection.clear()
+            for (const selected of this.selection.getSelected()) {
+                this.graph.removeNode(selected.node.id)
             }
+            this.selection.clear()
         }
     }
 

@@ -70,7 +70,6 @@ function onBoardClick(event: MouseEvent) {
     if (!clickedNode) {
         props.board.view.selection.clear()
         props.board.graph.clearPortSelection()
-        props.board.graph.clearConnectionSelection()
     }
 }
 
