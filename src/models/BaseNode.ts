@@ -1,23 +1,50 @@
-import { markRaw, reactive, type ConcreteComponent } from 'vue';
+import { reactive } from 'vue';
 import Port, { PortType } from './Port'
 
-interface InternalState {
+/** Reactive position, size, and display state managed internally by the framework. */
+export interface InternalState {
     x: number
     y: number
     zIndex: number
     width: number | null
     height: number | null
-    title: string,
+    title: string
 }
 
-interface SettingObject {
-    isThinComponent: boolean,
-    title: string,
-    isPortAutoLayoutEnabled: boolean,
-    width: number | null,
-    height: number | null,
+/** Optional settings for a node's appearance and layout behavior. */
+export interface SettingObject {
+    /**
+     * When `true` (default), VGraph wraps this node in `VBaseNode` (title bar + content area).
+     * Set to `false` to supply a fully custom component that owns its own layout and port rendering.
+     */
+    isThinComponent: boolean
+    /** Text shown in the node's title bar. */
+    title: string
+    /**
+     * When `true` (default), `VBaseNode` automatically distributes ports along the node's left
+     * and right edges. Set to `false` and use `VNodeRow` to position ports manually alongside
+     * labeled content rows.
+     */
+    isPortAutoLayoutEnabled: boolean
+    /** Fixed node width in pixels. `null` (default) means auto-size. */
+    width: number | null
+    /** Fixed node height in pixels. `null` (default) means auto-size. */
+    height: number | null
 }
 
+/**
+ * Base class for all custom node types. Extend this to define your own nodes.
+ *
+ * @example
+ * class AddNode extends BaseNode {
+ *   constructor() {
+ *     super('add-node', [new Port('number'), new Port('number')], [new Port('number')], { title: 'Add' })
+ *   }
+ *   compute() {
+ *     this.outputs[0].value = Number(this.inputs[0].value) + Number(this.inputs[1].value)
+ *   }
+ * }
+ */
 export default class BaseNode {
     id = crypto.randomUUID()
     isThinComponent: boolean = true
@@ -36,6 +63,13 @@ export default class BaseNode {
         title: '',
     })
 
+    /**
+     * @param componentId - Identifies the Vue component that renders this node.
+     *                      Must exactly match the `id` passed to `board.registerComponent()`.
+     * @param inputs      - Input ports. Their `ioType` is set to `PortType.Input` automatically.
+     * @param outputs     - Output ports. Their `ioType` is set to `PortType.Output` automatically.
+     * @param settings    - Optional appearance and layout overrides.
+     */
     constructor(componentId: string, inputs: Array<Port>, outputs: Array<Port>, settings: Partial<SettingObject> = {}) {
         this.isThinComponent = settings?.isThinComponent ?? this.isThinComponent;
         this.isPortAutoLayoutEnabled = settings?.isPortAutoLayoutEnabled ?? this.isPortAutoLayoutEnabled;
@@ -64,8 +98,18 @@ export default class BaseNode {
         this.internalState.y = y
     }
 
+    /**
+     * Override to recompute output values from input values.
+     * Called automatically whenever a connected input port's value changes, and by
+     * `graph.evaluate()` in topological order. Synchronous only — async operations are not supported.
+     */
     compute(): void {}
 
+    /**
+     * Override to return custom node data to persist. Called by `Serializer.serialize()`.
+     * The returned object is merged with internal state (position, size, ports).
+     * @returns A JSON-serializable object with custom properties to save.
+     */
     serialize() {
         return {}
     }
@@ -80,6 +124,11 @@ export default class BaseNode {
         }
     }
 
+    /**
+     * Override to restore custom properties saved by `serialize()`.
+     * Called by `Serializer.deserialize()` before internal state (position, size, ports) is restored.
+     * @param data - The full serialized node object, which includes internal state fields alongside your custom ones.
+     */
     deserialize(data: Object) {}
 
     deserializeInternal(data: Object) {

@@ -1,5 +1,7 @@
 export { default as Graph } from './Graph'
 export { default as Board } from './Board'
 export { default as BaseNode } from './BaseNode'
+export type { InternalState, SettingObject } from './BaseNode'
 export { default as Connection } from './Connection'
-export { default as Port } from './Port'
+export { default as Port, PortType } from './Port'
+export { default as Serializer } from './Serializer'
