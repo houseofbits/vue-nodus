@@ -1,5 +1,5 @@
 <template>
-    <div :style="style" class="port" ref="portEl" @click="board.graph.selectPort(props.port)" />
+    <div :style="style" class="port" ref="portEl" @mousedown.stop.prevent="board.graph.selectPort(props.port)" />
 </template>
 
 <script lang="ts" setup>

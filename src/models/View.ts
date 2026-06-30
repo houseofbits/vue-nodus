@@ -33,6 +33,7 @@ export default class View {
     _onMouseDown = this.onMouseDown.bind(this)
     _onMouseUp = this.onMouseUp.bind(this)
     _onWheel = this.onWheel.bind(this)
+    _onKeyDown = this.onKeyDown.bind(this)
 
     constructor(graph: Graph) {
         this.graph = graph
@@ -102,6 +103,21 @@ export default class View {
         this.viewport.panStop()
     }
 
+    onKeyDown(e: KeyboardEvent) {
+        if (e.key === "Delete") {
+            if (this.graph.selectedConnection.value) {
+                this.graph.removeConnection(this.graph.selectedConnection.value.id)
+            }
+
+            if (this.selection.getSelected().length > 0) {
+                for(const selected of this.selection.getSelected()) {
+                    this.graph.removeNode(selected.node.id)
+                }
+                this.selection.clear()
+            }
+        }
+    }
+
     unmount() {
         if (!this.boardElement) {
             return
@@ -111,6 +127,8 @@ export default class View {
         this.boardElement.removeEventListener('mousedown', this._onMouseDown)
         this.boardElement.removeEventListener('mouseup', this._onMouseUp)
         this.boardElement.removeEventListener('wheel', this._onWheel)
+
+        window.removeEventListener('keydown', this._onKeyDown)
     }
 
     mount(element: HTMLElement) {
@@ -121,6 +139,8 @@ export default class View {
         this.boardElement.addEventListener('mousedown', this._onMouseDown)
         this.boardElement.addEventListener('mouseup', this._onMouseUp)
         this.boardElement.addEventListener('wheel', this._onWheel, { passive: false })
+
+        window.addEventListener('keydown', this._onKeyDown)
     }
 
     getSVGPath(connection: Connection) {

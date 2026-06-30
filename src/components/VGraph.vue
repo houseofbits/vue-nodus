@@ -6,7 +6,8 @@
             <template v-for="node in props.board.graph.nodes">
                 <template v-if="node[1].isThinComponent">
                     <VBaseNode :key="node[0]" :node="node[1]" :is-selected="isSelected(node[1])"
-                        :style="getNodeStyle(node[1])" @mousedown="e => onNodeClick(e, node[1])">
+                        class="enable-pointer-events" :style="getNodeStyle(node[1])"
+                        @mousedown="e => onNodeClick(e, node[1])">
                         <template #content>
                             <component :is="getComponent(node[1])" :node="node[1]" />
                         </template>
@@ -14,7 +15,7 @@
                 </template>
 
                 <component v-else :is="getComponent(node[1])" :key="node[0]" :node="node[1]"
-                    :is-selected="isSelected(node[1])" :style="getNodeStyle(node[1])"
+                    :is-selected="isSelected(node[1])" :style="getNodeStyle(node[1])" class="enable-pointer-events"
                     @mousedown="e => onNodeClick(e, node[1])" />
             </template>
         </div>
@@ -49,8 +50,15 @@ const transformStyle = computed(() => {
 });
 
 const gridTransformStyle = computed(() => {
+    let gridSpacing = 20;
+    if (props.board.view.viewport.state.zoom < 0.7) {
+        gridSpacing = 40
+    } else if (props.board.view.viewport.state.zoom > 1.3) {
+        gridSpacing = 10
+    }
+
     return {
-        '--grid-size': `${20 * props.board.view.viewport.state.zoom}px`,
+        '--grid-size': `${gridSpacing * props.board.view.viewport.state.zoom}px`,
         '--grid-x': `${props.board.view.viewport.state.panX * props.board.view.viewport.state.zoom}px`,
         '--grid-y': `${props.board.view.viewport.state.panY * props.board.view.viewport.state.zoom}px`
     };
@@ -61,6 +69,8 @@ function onBoardClick(event: MouseEvent) {
 
     if (!clickedNode) {
         props.board.view.selection.clear()
+        props.board.graph.clearPortSelection()
+        props.board.graph.clearConnectionSelection()
     }
 }
 
@@ -121,22 +131,24 @@ onUnmounted(() => {
     position: fixed;
     width: 100%;
     height: 100%;
+    pointer-events: none;
+}
+
+.enable-pointer-events {
+    pointer-events: all;
 }
 
 .grid {
     position: absolute;
     inset: 0;
-    /* pointer-events: none; */
 
     --grid-size: 20px;
     --dot-size: 1.5px;
 
     background-image:
-        radial-gradient(
-            circle,
+        radial-gradient(circle,
             rgba(120, 170, 255, 0.18) var(--dot-size),
-            transparent var(--dot-size)
-        );
+            transparent var(--dot-size));
 
     background-size: var(--grid-size) var(--grid-size);
 

@@ -1,14 +1,46 @@
 <template>
-    <svg v-for="connection in board.graph.connections" :key="connection[0]" class="connections">
+    <svg class="connections">
         <g :transform="cameraStyle">
-            <path :d="getSVGPath(connection[1])" :stroke="connection[1].color" fill="none"
-                stroke-width="4" />
+            <template
+            v-for="[id, connection] in board.graph.connections"
+            :key="id"
+            >
+            <!-- Invisible hit area -->
+            <path
+                :d="getSVGPath(connection)"
+                fill="none"
+                stroke="transparent"
+                stroke-width="16"
+                style="cursor:pointer"
+                @click.stop="selectConnection(connection)"
+            />
+
+            <!-- Selection outline -->
+            <path
+                v-if="board.graph.selectedConnection.value?.id === id"
+                :d="getSVGPath(connection)"
+                stroke="white"
+                stroke-width="12"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            />
+
+            <!-- Visible connection -->
+            <path
+                :d="getSVGPath(connection)"
+                :stroke="connection.color"
+                fill="none"
+                stroke-width="4"
+                @click.stop="selectConnection(connection)"
+            />
+            </template>
         </g>
     </svg>
     <svg v-if="board.graph.selectedPort.value" class="connections">
         <g :transform="cameraStyle">
-            <path :d="getActiveSVGPath(board.graph.selectedPort.value)"
-                :stroke="board.graph.selectedPort.value.color" fill="none" stroke-width="4" />
+            <path :d="getActiveSVGPath(board.graph.selectedPort.value)" :stroke="board.graph.selectedPort.value.color"
+                fill="none" stroke-width="4" />
         </g>
     </svg>
 </template>
@@ -21,20 +53,26 @@ import { Board, Connection, Port } from '../models';
 const board = inject<Board>('board')
 if (!board) throw new Error('VConnectionsLayer must be used inside VGraph')
 
-function getSVGPath(connection: Connection): string {
+function getSVGPath(connection: Connection): string | undefined {
     try {
-        return board.view.getSVGPath(connection)
+        return board?.view.getSVGPath(connection)
     } catch {
-        return ''
+        return undefined
     }
 }
 
-function getActiveSVGPath(port: Port): string {
+function getActiveSVGPath(port: Port): string | undefined {
     try {
-        return board.view.getActiveSVGPath(port) ?? ''
+        return board?.view.getActiveSVGPath(port) ?? ''
     } catch {
-        return ''
+        return undefined
     }
+}
+
+function selectConnection(connection: Connection) {
+    board?.graph.selectConnection(connection)
+    board?.view.selection.clear()
+    board?.graph.clearPortSelection()
 }
 
 const cameraStyle = computed(() => {
