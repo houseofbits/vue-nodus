@@ -4,7 +4,7 @@ import Port, { PortType } from './Port'
 import { reactive, shallowRef, watch, type WatchStopHandle } from 'vue';
 
 export default class Graph {
-    nodes: Map<string, BaseNode> = new Map()
+    nodes: Map<string, BaseNode> = reactive(new Map())
     connections: Map<string, Connection> = reactive(new Map())
     selectedPort = shallowRef<Port | null>(null)
     selectedConnection = shallowRef<Connection | null>(null)

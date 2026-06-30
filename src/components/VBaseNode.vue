@@ -45,7 +45,7 @@ const props = defineProps({
     height: auto;
     display: flex;
     flex-direction: column;
-    border-radius: 12px;
+    border-radius: 8px;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
     transition: border 100ms linear;
     overflow: visible;
@@ -72,8 +72,8 @@ const props = defineProps({
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
     border-top: 1px solid #82c2ff;
     border-left: 1px solid #82c2ff;
     border-right: 1px solid #82c2ff;
@@ -89,8 +89,8 @@ const props = defineProps({
     border-bottom: 1px solid #ffffff;
     border-left: 1px solid #ffffff;
     border-right: 1px solid #ffffff;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
     min-width: 30px;
     min-height: 30px;
 }

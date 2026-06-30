@@ -174,4 +174,17 @@ export default class View {
             sourcePort.ioType === PortType.Input
         );
     }
+
+    getBoardCenterPosition() {
+        if (!this.boardElement) {
+            throw new Error('Board element missing')
+        }
+
+        const rect = this.boardElement.getBoundingClientRect()
+
+        const screenX = rect.width / 2
+        const screenY = rect.height / 2
+
+        return this.viewport.screenToWorld(screenX, screenY)  
+    }
 }
