@@ -18,7 +18,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { Board, Connection } from './models'
+import { NodusBoard, NodusConnection } from './models'
 import { VGraph } from './components'
 import NumberNode from './demo/nodes/NumberNode'
 import MathNode from './demo/nodes/MathNode'
@@ -30,14 +30,14 @@ import DisplayNodeComponent from './demo/components/DisplayNode.vue'
 const savedData = ref<string | null>(null)
 
 function createBoard() {
-    const b = new Board()
+    const b = new NodusBoard()
     b.registerComponent('number-node', NumberNodeComponent as any)
     b.registerComponent('math-node', MathNodeComponent as any)
     b.registerComponent('display-node', DisplayNodeComponent as any)
     return b
 }
 
-function buildInitialGraph(b: Board) {
+function buildInitialGraph(b: NodusBoard) {
     const numA = new NumberNode()
     numA.setPosition(80, 80)
     numA.outputs[0].value = 3
@@ -57,9 +57,9 @@ function buildInitialGraph(b: Board) {
     b.graph.addNode(math)
     b.graph.addNode(display)
 
-    b.graph.addConnection(new Connection(numA.outputs[0], math.inputs[0]))
-    b.graph.addConnection(new Connection(numB.outputs[0], math.inputs[1]))
-    b.graph.addConnection(new Connection(math.outputs[0], display.inputs[0]))
+    b.graph.addConnection(new NodusConnection(numA.outputs[0], math.inputs[0]))
+    b.graph.addConnection(new NodusConnection(numB.outputs[0], math.inputs[1]))
+    b.graph.addConnection(new NodusConnection(math.outputs[0], display.inputs[0]))
 
     b.graph.evaluate()
 }

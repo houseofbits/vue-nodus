@@ -1,18 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import Graph from '../models/Graph'
-import BaseNode from '../models/BaseNode'
-import Port, { PortType } from '../models/Port'
-import Connection from '../models/Connection'
+import NodusGraph from '../models/Graph'
+import NodusBaseNode from '../models/BaseNode'
+import NodusPort, { NodusPortType } from '../models/Port'
+import NodusConnection from '../models/Connection'
 
-function makeNode(componentId = 'test', inputs: Port[] = [], outputs: Port[] = []) {
-    return new BaseNode(componentId, inputs, outputs)
+function makeNode(componentId = 'test', inputs: NodusPort[] = [], outputs: NodusPort[] = []) {
+    return new NodusBaseNode(componentId, inputs, outputs)
 }
 
 describe('Graph', () => {
-    let graph: Graph
+    let graph: NodusGraph
 
     beforeEach(() => {
-        graph = new Graph()
+        graph = new NodusGraph()
     })
 
     describe('addNode / removeNode', () => {
@@ -23,8 +23,8 @@ describe('Graph', () => {
         })
 
         it('indexes ports so getNodeByPortId works', () => {
-            const input = new Port('number')
-            const output = new Port('number')
+            const input = new NodusPort('number')
+            const output = new NodusPort('number')
             const node = makeNode('test', [input], [output])
             graph.addNode(node)
             expect(graph.getNodeByPortId(input.id)).toBe(node)
@@ -39,13 +39,13 @@ describe('Graph', () => {
         })
 
         it('removes connections attached to the node on removeNode', () => {
-            const output = new Port('number')
-            const input = new Port('number')
+            const output = new NodusPort('number')
+            const input = new NodusPort('number')
             const src = makeNode('src', [], [output])
             const tgt = makeNode('tgt', [input], [])
             graph.addNode(src)
             graph.addNode(tgt)
-            const conn = new Connection(output, input)
+            const conn = new NodusConnection(output, input)
             graph.addConnection(conn)
             expect(graph.connections.size).toBe(1)
 
@@ -60,41 +60,41 @@ describe('Graph', () => {
 
     describe('addConnection / removeConnection', () => {
         it('adds a connection', () => {
-            const output = new Port('number')
-            const input = new Port('number')
+            const output = new NodusPort('number')
+            const input = new NodusPort('number')
             const src = makeNode('src', [], [output])
             const tgt = makeNode('tgt', [input], [])
             graph.addNode(src)
             graph.addNode(tgt)
 
-            const conn = new Connection(output, input)
+            const conn = new NodusConnection(output, input)
             graph.addConnection(conn)
             expect(graph.connections.has(conn.id)).toBe(true)
         })
 
         it('removes a connection', () => {
-            const output = new Port('number')
-            const input = new Port('number')
+            const output = new NodusPort('number')
+            const input = new NodusPort('number')
             const src = makeNode('src', [], [output])
             const tgt = makeNode('tgt', [input], [])
             graph.addNode(src)
             graph.addNode(tgt)
 
-            const conn = new Connection(output, input)
+            const conn = new NodusConnection(output, input)
             graph.addConnection(conn)
             graph.removeConnection(conn.id)
             expect(graph.connections.has(conn.id)).toBe(false)
         })
 
         it('syncs initial value from source to target on addConnection', () => {
-            const output = new Port('number', 'white', false, 42)
-            const input = new Port('number')
+            const output = new NodusPort('number', 'white', false, 42)
+            const input = new NodusPort('number')
             const src = makeNode('src', [], [output])
             const tgt = makeNode('tgt', [input], [])
             graph.addNode(src)
             graph.addNode(tgt)
 
-            graph.addConnection(new Connection(output, input))
+            graph.addConnection(new NodusConnection(output, input))
             expect(input.value).toBe(42)
         })
     })
@@ -103,8 +103,8 @@ describe('Graph', () => {
         it('warns when connecting two input ports', () => {
             const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-            const nodeA = makeNode('a', [new Port('number')], [])
-            const nodeB = makeNode('b', [new Port('number')], [])
+            const nodeA = makeNode('a', [new NodusPort('number')], [])
+            const nodeB = makeNode('b', [new NodusPort('number')], [])
             graph.addNode(nodeA)
             graph.addNode(nodeB)
 
@@ -119,8 +119,8 @@ describe('Graph', () => {
         it('warns when connecting two output ports', () => {
             const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-            const nodeA = makeNode('a', [], [new Port('number')])
-            const nodeB = makeNode('b', [], [new Port('number')])
+            const nodeA = makeNode('a', [], [new NodusPort('number')])
+            const nodeB = makeNode('b', [], [new NodusPort('number')])
             graph.addNode(nodeA)
             graph.addNode(nodeB)
 
@@ -134,8 +134,8 @@ describe('Graph', () => {
         it('warns on port type mismatch', () => {
             const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-            const nodeA = makeNode('a', [], [new Port('number')])
-            const nodeB = makeNode('b', [new Port('string')], [])
+            const nodeA = makeNode('a', [], [new NodusPort('number')])
+            const nodeB = makeNode('b', [new NodusPort('string')], [])
             graph.addNode(nodeA)
             graph.addNode(nodeB)
 
@@ -149,14 +149,14 @@ describe('Graph', () => {
         it('warns when connecting to a non-multiport that already has a connection', () => {
             const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-            const src1 = makeNode('s1', [], [new Port('number')])
-            const src2 = makeNode('s2', [], [new Port('number')])
-            const tgt = makeNode('t', [new Port('number')], [])
+            const src1 = makeNode('s1', [], [new NodusPort('number')])
+            const src2 = makeNode('s2', [], [new NodusPort('number')])
+            const tgt = makeNode('t', [new NodusPort('number')], [])
             graph.addNode(src1)
             graph.addNode(src2)
             graph.addNode(tgt)
 
-            graph.addConnection(new Connection(src1.outputs[0], tgt.inputs[0]))
+            graph.addConnection(new NodusConnection(src1.outputs[0], tgt.inputs[0]))
 
             graph.selectPort(src2.outputs[0])
             graph.selectPort(tgt.inputs[0])
@@ -168,8 +168,8 @@ describe('Graph', () => {
         it('does not warn on a valid connection', () => {
             const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-            const src = makeNode('src', [], [new Port('number')])
-            const tgt = makeNode('tgt', [new Port('number')], [])
+            const src = makeNode('src', [], [new NodusPort('number')])
+            const tgt = makeNode('tgt', [new NodusPort('number')], [])
             graph.addNode(src)
             graph.addNode(tgt)
 

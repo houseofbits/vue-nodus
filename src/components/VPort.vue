@@ -5,14 +5,14 @@
 <script lang="ts" setup>
 
 import { ref, onMounted, onUnmounted, inject, computed } from 'vue'
-import { Board, Port } from '../models';
+import { NodusBoard, NodusPort } from '../models';
 
-const board = inject<Board>('board')
+const board = inject<NodusBoard>('board')
 if (!board) throw new Error('VPort must be used inside VGraph')
 
 const props = defineProps({
     port: {
-        type: Port,
+        type: NodusPort,
         required: true,
     }
 });

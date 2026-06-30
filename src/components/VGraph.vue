@@ -23,14 +23,14 @@
 </template>
 
 <script lang="ts" setup>
-import { BaseNode, Board, Port } from '../models';
+import { NodusBaseNode, NodusBoard } from '../models';
 import { computed, onMounted, onUnmounted, provide, ref } from 'vue';
 import VConnectionsLayer from './VConnectionsLayer.vue';
 import VBaseNode from './VBaseNode.vue';
 
 const props = defineProps({
     board: {
-        type: Board,
+        type: NodusBoard,
         required: true,
     }
 })
@@ -73,15 +73,15 @@ function onBoardClick(event: MouseEvent) {
     }
 }
 
-function onNodeClick(event: MouseEvent, node: BaseNode) {
+function onNodeClick(event: MouseEvent, node: NodusBaseNode) {
     props.board.view.nodeDragStart(node, event);
 }
 
-function isSelected(node: BaseNode) {
+function isSelected(node: NodusBaseNode) {
     return props.board.view.selection.isSelected(node)
 }
 
-function getNodeStyle(node: BaseNode) {
+function getNodeStyle(node: NodusBaseNode) {
     const values: Record<string, any> = {
         left: `${node.internalState.x}px`,
         top: `${node.internalState.y}px`,
@@ -99,7 +99,7 @@ function getNodeStyle(node: BaseNode) {
     return values
 }
 
-function getComponent(node: BaseNode) {
+function getComponent(node: NodusBaseNode) {
     return props.board.getComponent(node.componentId) ?? null
 }
 

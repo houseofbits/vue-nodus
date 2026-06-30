@@ -3,11 +3,11 @@ import Viewport from './Viewport.js'
 import PortRegistry from './PortRegistry.js'
 import SelectionController from './SelectionController.js'
 import { buildBezierPath } from '../helpers/svgBezier.js'
-import Graph from './Graph.js';
-import BaseNode from './BaseNode.js';
+import NodusGraph from './Graph.js';
+import NodusBaseNode from './BaseNode.js';
 import Vector2 from '../types/Vector2'
-import Connection from './Connection.js';
-import Port, { PortType } from './Port.js';
+import NodusConnection from './Connection.js';
+import NodusPort, { NodusPortType } from './Port.js';
 
 interface InternalState {
     isDraggingNode: boolean
@@ -16,7 +16,7 @@ interface InternalState {
 }
 
 export default class View {
-    graph: Graph
+    graph: NodusGraph
     boardElement: HTMLElement | null = null
     state: InternalState = reactive({
         isDraggingNode: false,
@@ -35,12 +35,12 @@ export default class View {
     _onWheel = this.onWheel.bind(this)
     _onKeyDown = this.onKeyDown.bind(this)
 
-    constructor(graph: Graph) {
+    constructor(graph: NodusGraph) {
         this.graph = graph
         this.portRegistry = new PortRegistry(this.viewport)
     }
 
-    nodeDragStart(node: BaseNode, event: MouseEvent) {
+    nodeDragStart(node: NodusBaseNode, event: MouseEvent) {
         this.selection.selectNode(node, event.shiftKey)
         this.dragStartWorld = this.viewport.screenToWorld(event.clientX, event.clientY)
         this.selection.snapshotPositions()
@@ -60,7 +60,7 @@ export default class View {
 
     onMove(event: MouseEvent) {
         const mouseWOrld = this.viewport.screenToWorld(event.clientX, event.clientY)
-            
+
         this.state.mouseX = mouseWOrld.x
         this.state.mouseY = mouseWOrld.y
 
@@ -74,7 +74,7 @@ export default class View {
         }
 
         this.viewport.applyPan(event.clientX, event.clientY)
-        
+
         this.portRegistry.updateAll()
     }
 
@@ -132,7 +132,7 @@ export default class View {
         window.addEventListener('keydown', this._onKeyDown)
     }
 
-    getSVGPath(connection: Connection) {
+    getSVGPath(connection: NodusConnection) {
         const source = this.portRegistry.get(connection.sourcePortId);
         const target = this.portRegistry.get(connection.targetPortId);
 
@@ -147,7 +147,7 @@ export default class View {
         );
     }
 
-    getActiveSVGPath(sourcePort: Port) {
+    getActiveSVGPath(sourcePort: NodusPort) {
         if (!sourcePort) return;
 
         const source = this.portRegistry.get(sourcePort.id);
@@ -160,7 +160,7 @@ export default class View {
             source.x, source.y,
             this.state.mouseX,
             this.state.mouseY,
-            sourcePort.ioType === PortType.Input
+            sourcePort.ioType === NodusPortType.Input
         );
     }
 
@@ -174,6 +174,6 @@ export default class View {
         const screenX = rect.width / 2
         const screenY = rect.height / 2
 
-        return this.viewport.screenToWorld(screenX, screenY)  
+        return this.viewport.screenToWorld(screenX, screenY)
     }
 }

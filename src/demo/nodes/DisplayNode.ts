@@ -1,10 +1,10 @@
-import { BaseNode, Port } from '../../models'
+import { NodusBaseNode, NodusPort } from '../../models'
 
-export default class DisplayNode extends BaseNode {
+export default class DisplayNode extends NodusBaseNode {
     constructor() {
         super(
             'display-node',
-            [new Port('number', '#81c784')],
+            [new NodusPort('number', '#81c784')],
             [],
             { title: 'Display', width: 180, isPortAutoLayoutEnabled: false }
         )

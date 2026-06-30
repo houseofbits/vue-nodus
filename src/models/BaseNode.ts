@@ -1,8 +1,8 @@
 import { reactive } from 'vue';
-import Port, { PortType } from './Port'
+import NodusPort, { NodusPortType } from './Port'
 
 /** Reactive position, size, and display state managed internally by the framework. */
-export interface InternalState {
+export interface NodusInternalState {
     x: number
     y: number
     zIndex: number
@@ -12,7 +12,7 @@ export interface InternalState {
 }
 
 /** Optional settings for a node's appearance and layout behavior. */
-export interface SettingObject {
+export interface NodusSettingObject {
     /**
      * When `true` (default), VGraph wraps this node in `VBaseNode` (title bar + content area).
      * Set to `false` to supply a fully custom component that owns its own layout and port rendering.
@@ -36,25 +36,25 @@ export interface SettingObject {
  * Base class for all custom node types. Extend this to define your own nodes.
  *
  * @example
- * class AddNode extends BaseNode {
+ * class AddNode extends NodusBaseNode {
  *   constructor() {
- *     super('add-node', [new Port('number'), new Port('number')], [new Port('number')], { title: 'Add' })
+ *     super('add-node', [new NodusPort('number'), new NodusPort('number')], [new NodusPort('number')], { title: 'Add' })
  *   }
  *   compute() {
  *     this.outputs[0].value = Number(this.inputs[0].value) + Number(this.inputs[1].value)
  *   }
  * }
  */
-export default class BaseNode {
+export default class NodusBaseNode {
     id = crypto.randomUUID()
     isThinComponent: boolean = true
     isPortAutoLayoutEnabled: boolean = true
     componentId: string
 
-    inputs: Array<Port> = []
-    outputs: Array<Port> = []
+    inputs: Array<NodusPort> = []
+    outputs: Array<NodusPort> = []
 
-    internalState: InternalState = reactive({
+    internalState: NodusInternalState = reactive({
         x: 0,
         y: 0,
         zIndex: 0,
@@ -66,11 +66,11 @@ export default class BaseNode {
     /**
      * @param componentId - Identifies the Vue component that renders this node.
      *                      Must exactly match the `id` passed to `board.registerComponent()`.
-     * @param inputs      - Input ports. Their `ioType` is set to `PortType.Input` automatically.
-     * @param outputs     - Output ports. Their `ioType` is set to `PortType.Output` automatically.
+     * @param inputs      - Input ports. Their `ioType` is set to `NodusPortType.Input` automatically.
+     * @param outputs     - Output ports. Their `ioType` is set to `NodusPortType.Output` automatically.
      * @param settings    - Optional appearance and layout overrides.
      */
-    constructor(componentId: string, inputs: Array<Port>, outputs: Array<Port>, settings: Partial<SettingObject> = {}) {
+    constructor(componentId: string, inputs: Array<NodusPort>, outputs: Array<NodusPort>, settings: Partial<NodusSettingObject> = {}) {
         this.isThinComponent = settings?.isThinComponent ?? this.isThinComponent;
         this.isPortAutoLayoutEnabled = settings?.isPortAutoLayoutEnabled ?? this.isPortAutoLayoutEnabled;
         this.internalState.title = settings?.title ?? this.internalState.title;
@@ -81,11 +81,11 @@ export default class BaseNode {
         this.outputs = outputs
 
         for (const input of this.inputs) {
-            input.ioType = PortType.Input;
+            input.ioType = NodusPortType.Input;
         }
 
         for (const output of this.outputs) {
-            output.ioType = PortType.Output;
+            output.ioType = NodusPortType.Output;
         }
     }
 
@@ -106,7 +106,7 @@ export default class BaseNode {
     compute(): void {}
 
     /**
-     * Override to return custom node data to persist. Called by `Serializer.serialize()`.
+     * Override to return custom node data to persist. Called by `NodusSerializer.serialize()`.
      * The returned object is merged with internal state (position, size, ports).
      * @returns A JSON-serializable object with custom properties to save.
      */
@@ -126,7 +126,7 @@ export default class BaseNode {
 
     /**
      * Override to restore custom properties saved by `serialize()`.
-     * Called by `Serializer.deserialize()` before internal state (position, size, ports) is restored.
+     * Called by `NodusSerializer.deserialize()` before internal state (position, size, ports) is restored.
      * @param data - The full serialized node object, which includes internal state fields alongside your custom ones.
      */
     deserialize(data: Object) {}
@@ -146,8 +146,8 @@ export default class BaseNode {
 
         const portData = typedData.ports
         if (portData) {
-            const savedInputs = Object.values(portData).filter((p: any) => p.ioType === PortType.Input)
-            const savedOutputs = Object.values(portData).filter((p: any) => p.ioType === PortType.Output)
+            const savedInputs = Object.values(portData).filter((p: any) => p.ioType === NodusPortType.Input)
+            const savedOutputs = Object.values(portData).filter((p: any) => p.ioType === NodusPortType.Output)
 
             this.inputs.forEach((port, i) => {
                 const saved = savedInputs[i] as any

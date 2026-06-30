@@ -1,18 +1,18 @@
 import { ref } from 'vue';
-import BaseNode from './BaseNode'
-import Connection from './Connection'
+import NodusBaseNode from './BaseNode'
+import NodusConnection from './Connection'
 
 interface SelectedNode {
-    node: BaseNode
+    node: NodusBaseNode
     dragStartX: number
     dragStartY: number
 }
 
 export default class SelectionController {
     selectedNodes = ref<Array<SelectedNode>>([])
-    selectedConnections = ref<Array<Connection>>([])
+    selectedConnections = ref<Array<NodusConnection>>([])
 
-    selectNode(node: BaseNode, multiSelect = false) {
+    selectNode(node: NodusBaseNode, multiSelect = false) {
         if (!multiSelect) {
             this.selectedConnections.value = []
             if (!this.isSelected(node)) {
@@ -28,7 +28,7 @@ export default class SelectionController {
         }
     }
 
-    selectConnection(connection: Connection, multiSelect = false) {
+    selectConnection(connection: NodusConnection, multiSelect = false) {
         if (!multiSelect) {
             this.selectedNodes.value = []
             this.selectedConnections.value = [connection]
@@ -41,11 +41,11 @@ export default class SelectionController {
         }
     }
 
-    isConnectionSelected(connection: Connection): boolean {
+    isConnectionSelected(connection: NodusConnection): boolean {
         return this.selectedConnections.value.some(c => c.id === connection.id)
     }
 
-    getSelectedConnections(): Connection[] {
+    getSelectedConnections(): NodusConnection[] {
         return this.selectedConnections.value
     }
 
@@ -54,7 +54,7 @@ export default class SelectionController {
         this.selectedConnections.value = []
     }
 
-    isSelected(node: BaseNode): boolean {
+    isSelected(node: NodusBaseNode): boolean {
         return this.selectedNodes.value.some(n => n.node.id === node.id)
     }
 

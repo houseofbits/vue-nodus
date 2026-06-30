@@ -22,12 +22,12 @@
 </template>
 
 <script lang="ts" setup>
-import BaseNode from '../models/BaseNode.js';
+import NodusBaseNode from '../models/BaseNode.js';
 import VPort from './VPort.vue'
 
 const props = defineProps({
     node: {
-        type: BaseNode,
+        type: NodusBaseNode,
         required: true,
     },
     isSelected: {

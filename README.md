@@ -23,11 +23,11 @@ Requires Vue 3.5+ as a peer dependency.
 </template>
 
 <script setup lang="ts">
-import { Board, BaseNode, Port, VGraph } from '@houseofbits/vue-nodus'
+import { NodusBoard, NodusBaseNode, NodusPort, VGraph } from '@houseofbits/vue-nodus'
 import MyNodeComponent from './MyNode.vue'
 import MyNode from './MyNode'
 
-const board = new Board()
+const board = new NodusBoard()
 
 // Register your custom node component
 board.registerComponent('my-node', MyNodeComponent)
@@ -43,24 +43,24 @@ board.graph.addNode(node)
 
 ## Creating custom nodes
 
-A custom node consists of two parts: a **model class** (extends `BaseNode`) and a **Vue component** that renders it.
+A custom node consists of two parts: a **model class** (extends `NodusBaseNode`) and a **Vue component** that renders it.
 
 ### 1. Define the model
 
 ```ts
 // AddNode.ts
-import { BaseNode, Port } from '@houseofbits/vue-nodus'
+import { NodusBaseNode, NodusPort } from '@houseofbits/vue-nodus'
 
-export default class AddNode extends BaseNode {
+export default class AddNode extends NodusBaseNode {
   constructor() {
     super(
-      'add-node',                      // component ID — must match registerComponent()
+      'add-node',                           // component ID — must match registerComponent()
       [
-        new Port('number', '#4fc3f7'), // input port: type, color
-        new Port('number', '#4fc3f7'),
+        new NodusPort('number', '#4fc3f7'), // input port: type, color
+        new NodusPort('number', '#4fc3f7'),
       ],
       [
-        new Port('number', '#81c784'), // output port
+        new NodusPort('number', '#81c784'), // output port
       ],
       { title: 'Add' }
     )
@@ -108,11 +108,11 @@ const props = defineProps({
 ### 3. Register and use
 
 ```ts
-import { Board } from '@houseofbits/vue-nodus'
+import { NodusBoard } from '@houseofbits/vue-nodus'
 import AddNode from './AddNode'
 import AddNodeComponent from './AddNode.vue'
 
-const board = new Board()
+const board = new NodusBoard()
 board.registerComponent('add-node', AddNodeComponent)
 
 const node = new AddNode()
@@ -123,7 +123,7 @@ board.graph.addNode(node)
 ### Port options
 
 ```ts
-new Port(
+new NodusPort(
   type,           // string — used for connection type-matching
   color?,         // CSS color string, default 'white'
   isMultiport?,   // allow multiple incoming connections, default false
@@ -135,10 +135,10 @@ Two ports can only be connected if they share the same `type` string.
 
 ### Node settings
 
-The fourth argument to `BaseNode` accepts optional settings:
+The fourth argument to `NodusBaseNode` accepts optional settings:
 
 ```ts
-new BaseNode('my-node', inputs, outputs, {
+new NodusBaseNode('my-node', inputs, outputs, {
   title: 'My Node',              // shown in the title bar
   width: 200,                    // fixed width in px (null = auto)
   height: 150,                   // fixed height in px (null = auto)
@@ -190,7 +190,7 @@ board.serializer.deserialize(saved, (componentId) => {
 
 `deserialize` clears the existing graph, recreates all nodes via your factory, restores port values and connections, and resets the viewport — all in one call.
 
-Override `serialize()` / `deserialize()` on your `BaseNode` subclass to persist custom properties:
+Override `serialize()` / `deserialize()` on your `NodusBaseNode` subclass to persist custom properties:
 
 ```ts
 serialize() {
@@ -204,41 +204,41 @@ deserialize(data: any) {
 
 ## API reference
 
-### `Board`
+### `NodusBoard`
 
 Top-level orchestrator. Create one instance per editor.
 
 | Member | Type | Description |
 |---|---|---|
-| `graph` | `Graph` | The node graph |
+| `graph` | `NodusGraph` | The node graph |
 | `view` | `View` | Interaction and rendering state |
-| `serializer` | `Serializer` | Save/restore helpers |
+| `serializer` | `NodusSerializer` | Save/restore helpers |
 | `registerComponent(id, component)` | method | Register a Vue component for a node type |
 | `getComponent(id)` | method | Look up a registered component by ID |
 
-### `Graph`
+### `NodusGraph`
 
 Manages nodes and connections. All mutations are reactive.
 
 | Member | Description |
 |---|---|
-| `nodes` | `Map<string, BaseNode>` |
-| `connections` | `Map<string, Connection>` |
+| `nodes` | `Map<string, NodusBaseNode>` |
+| `connections` | `Map<string, NodusConnection>` |
 | `addNode(node)` | Add a node |
 | `removeNode(id)` | Remove a node and its connections |
 | `addConnection(conn)` | Add a connection |
 | `removeConnection(id)` | Remove a connection |
 | `evaluate()` | Re-compute all nodes in topological order |
 
-### `BaseNode`
+### `NodusBaseNode`
 
 Extend this class to create custom node types.
 
 ```ts
 constructor(
   componentId: string,
-  inputs: Port[],
-  outputs: Port[],
+  inputs: NodusPort[],
+  outputs: NodusPort[],
   settings?: {
     title?: string
     width?: number | null
@@ -252,17 +252,17 @@ constructor(
 | Member | Description |
 |---|---|
 | `id` | Auto-generated UUID |
-| `inputs` / `outputs` | Port arrays |
+| `inputs` / `outputs` | `NodusPort` arrays |
 | `internalState` | Reactive `{ x, y, zIndex, width, height, title }` |
 | `compute()` | Override to propagate output values from inputs |
 | `serialize()` | Override to return custom serializable data |
 | `deserialize(data)` | Override to restore from serialized data |
 | `setPosition(x, y)` | Set canvas position |
 
-### `Port`
+### `NodusPort`
 
 ```ts
-new Port(type: string, color?: string, isMultiport?: boolean, defaultValue?: unknown)
+new NodusPort(type: string, color?: string, isMultiport?: boolean, defaultValue?: unknown)
 ```
 
 | Member | Description |
@@ -270,27 +270,27 @@ new Port(type: string, color?: string, isMultiport?: boolean, defaultValue?: unk
 | `id` | Auto-generated UUID |
 | `type` | String tag used for connection type-matching |
 | `color` | CSS color string |
-| `ioType` | `PortType.Input` or `PortType.Output` (set by the graph) |
+| `ioType` | `NodusPortType.Input` or `NodusPortType.Output` (set by the graph) |
 | `isMultiport` | Allow multiple incoming connections |
 | `value` | Current reactive value |
 | `valueRef` | Raw Vue `Ref` — use with `computed`/`watch` |
 
-### `Connection`
+### `NodusConnection`
 
 ```ts
-new Connection(sourcePort: Port, targetPort: Port, color?: string)
+new NodusConnection(sourcePort: NodusPort, targetPort: NodusPort, color?: string)
 ```
 
-Connections are created automatically when the user clicks two compatible ports. You only need to instantiate `Connection` directly when restoring from serialized state.
+Connections are created automatically when the user clicks two compatible ports. You only need to instantiate `NodusConnection` directly when restoring from serialized state.
 
-### `Serializer`
+### `NodusSerializer`
 
 Accessed via `board.serializer`.
 
 | Member | Description |
 |---|---|
 | `serialize()` | Returns a plain `JSON.stringify`-safe object |
-| `deserialize(data, factory)` | Restores graph state from a serialized object; `factory` is `(componentId: string, data: any) => BaseNode` |
+| `deserialize(data, factory)` | Restores graph state from a serialized object; `factory` is `(componentId: string, data: any) => NodusBaseNode` |
 
 ---
 
@@ -298,7 +298,7 @@ Accessed via `board.serializer`.
 
 | Prop | Type | Required | Description |
 |---|---|---|---|
-| `board` | `Board` | yes | The board instance to render |
+| `board` | `NodusBoard` | yes | The board instance to render |
 
 ### Component: `VBaseNode`
 
@@ -306,7 +306,7 @@ Default node shell with a title bar and content area.
 
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| `node` | `BaseNode` | required | The node model |
+| `node` | `NodusBaseNode` | required | The node model |
 | `isSelected` | `boolean` | `false` | Highlights the node with an outline |
 
 Slots: `#title` (defaults to `node.internalState.title`), `#content`.
@@ -317,8 +317,8 @@ A content row that positions a port on the left or right edge.
 
 | Prop | Type | Description |
 |---|---|---|
-| `inputPort` | `Port` | Port displayed on the left edge |
-| `outputPort` | `Port` | Port displayed on the right edge |
+| `inputPort` | `NodusPort` | Port displayed on the left edge |
+| `outputPort` | `NodusPort` | Port displayed on the right edge |
 
 ### Component: `VPort`
 
@@ -326,7 +326,7 @@ Renders a single port circle. Used internally by `VBaseNode` and `VNodeRow`. Can
 
 | Prop | Type | Required | Description |
 |---|---|---|---|
-| `port` | `Port` | yes | The port to render |
+| `port` | `NodusPort` | yes | The port to render |
 
 ## License
 

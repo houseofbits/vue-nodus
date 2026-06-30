@@ -13,16 +13,16 @@
 
 <script lang="ts" setup>
 
-import { Port } from '../models';
+import { NodusPort } from '../models';
 import VPort from './VPort.vue';
 
 const props = defineProps({
     inputPort: {
-        type: Port,
+        type: NodusPort,
         required: false,
     },
     outputPort: {
-        type: Port,
+        type: NodusPort,
         required: false,
     }    
 });

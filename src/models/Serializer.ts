@@ -1,18 +1,18 @@
-import Connection from "./Connection";
-import Graph from "./Graph";
-import Port from "./Port";
-import BaseNode from "./BaseNode";
+import NodusConnection from "./Connection";
+import NodusGraph from "./Graph";
+import NodusPort from "./Port";
+import NodusBaseNode from "./BaseNode";
 import Viewport from "./Viewport";
 
 /**
  * Saves and restores the full graph state (nodes, connections, and viewport position).
  * Access via `board.serializer`.
  */
-export default class Serializer {
-    graph: Graph
+export default class NodusSerializer {
+    graph: NodusGraph
     viewport: Viewport
 
-    constructor(graph: Graph, viewport: Viewport) {
+    constructor(graph: NodusGraph, viewport: Viewport) {
         this.graph = graph
         this.viewport = viewport
     }
@@ -62,7 +62,7 @@ export default class Serializer {
      *   }
      * })
      */
-    deserialize(data: any, factory: (componentId: string, data: any) => BaseNode): void {
+    deserialize(data: any, factory: (componentId: string, data: any) => NodusBaseNode): void {
         this.clearGraph()
 
         for (const nodeData of Object.values(data.nodes) as any[]) {
@@ -72,9 +72,9 @@ export default class Serializer {
         }
 
         for (const connData of Object.values(data.connections) as any[]) {
-            const conn = new Connection(
-                { id: connData.sourcePortId } as Port,
-                { id: connData.targetPortId } as Port,
+            const conn = new NodusConnection(
+                { id: connData.sourcePortId } as NodusPort,
+                { id: connData.targetPortId } as NodusPort,
                 connData.color,
             )
             conn.id = connData.id

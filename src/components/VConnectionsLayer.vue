@@ -48,12 +48,12 @@
 <script lang="ts" setup>
 
 import { inject, computed } from 'vue'
-import { Board, Connection, Port } from '../models';
+import { NodusBoard, NodusConnection, NodusPort } from '../models';
 
-const board = inject<Board>('board')
+const board = inject<NodusBoard>('board')
 if (!board) throw new Error('VConnectionsLayer must be used inside VGraph')
 
-function getSVGPath(connection: Connection): string | undefined {
+function getSVGPath(connection: NodusConnection): string | undefined {
     try {
         return board?.view.getSVGPath(connection)
     } catch {
@@ -61,7 +61,7 @@ function getSVGPath(connection: Connection): string | undefined {
     }
 }
 
-function getActiveSVGPath(port: Port): string | undefined {
+function getActiveSVGPath(port: NodusPort): string | undefined {
     try {
         return board?.view.getActiveSVGPath(port) ?? ''
     } catch {
@@ -69,7 +69,7 @@ function getActiveSVGPath(port: Port): string | undefined {
     }
 }
 
-function selectConnection(connection: Connection, event: MouseEvent) {
+function selectConnection(connection: NodusConnection, event: MouseEvent) {
     board?.view.selection.selectConnection(connection, event.shiftKey)
     board?.graph.clearPortSelection()
 }

@@ -1,15 +1,15 @@
-import Port from './Port'
+import NodusPort from './Port'
 
 /**
  * Represents a directed connection from an output port to an input port.
- * Connections are created automatically by `Graph.selectPort()` when the user clicks
- * two compatible ports, or manually via `Graph.addConnection()`.
+ * Connections are created automatically by `NodusGraph.selectPort()` when the user clicks
+ * two compatible ports, or manually via `NodusGraph.addConnection()`.
  *
  * @example
- * const conn = new Connection(sourcePort, targetPort)
+ * const conn = new NodusConnection(sourcePort, targetPort)
  * graph.addConnection(conn)
  */
-export default class Connection {
+export default class NodusConnection {
     id = crypto.randomUUID();
     /** ID of the output port this connection originates from. */
     sourcePortId: string
@@ -23,7 +23,7 @@ export default class Connection {
      * @param portB  - The input (target) port.
      * @param color  - CSS color for the connection line. Defaults to `'#FFF'`.
      */
-    constructor(portA: Port, portB: Port, color: string = '#FFF') {
+    constructor(portA: NodusPort, portB: NodusPort, color: string = '#FFF') {
         this.sourcePortId = portA.id;
         this.targetPortId = portB.id;
         this.color = color

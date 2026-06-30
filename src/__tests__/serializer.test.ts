@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest'
-import Board from '../models/Board'
-import BaseNode from '../models/BaseNode'
-import Port from '../models/Port'
-import Connection from '../models/Connection'
+import NodusBoard from '../models/Board'
+import NodusBaseNode from '../models/BaseNode'
+import NodusPort from '../models/Port'
+import NodusConnection from '../models/Connection'
 
 function makeSimpleNode(componentId: string) {
-    return new BaseNode(componentId, [new Port('number')], [new Port('number')])
+    return new NodusBaseNode(componentId, [new NodusPort('number')], [new NodusPort('number')])
 }
 
 describe('Serializer', () => {
     it('serialize returns nodes, connections, and board sections', () => {
-        const board = new Board()
+        const board = new NodusBoard()
         const node = makeSimpleNode('test')
         board.graph.addNode(node)
 
@@ -24,7 +24,7 @@ describe('Serializer', () => {
     })
 
     it('serializes node positions', () => {
-        const board = new Board()
+        const board = new NodusBoard()
         const node = makeSimpleNode('test')
         node.setPosition(123, 456)
         board.graph.addNode(node)
@@ -36,19 +36,19 @@ describe('Serializer', () => {
     })
 
     it('serializes connections', () => {
-        const board = new Board()
-        const src = new BaseNode('src', [], [new Port('number')])
-        const tgt = new BaseNode('tgt', [new Port('number')], [])
+        const board = new NodusBoard()
+        const src = new NodusBaseNode('src', [], [new NodusPort('number')])
+        const tgt = new NodusBaseNode('tgt', [new NodusPort('number')], [])
         board.graph.addNode(src)
         board.graph.addNode(tgt)
-        board.graph.addConnection(new Connection(src.outputs[0], tgt.inputs[0]))
+        board.graph.addConnection(new NodusConnection(src.outputs[0], tgt.inputs[0]))
 
         const data = board.serializer.serialize()
         expect(Object.keys(data.connections)).toHaveLength(1)
     })
 
     it('deserialize restores nodes with correct positions', () => {
-        const board = new Board()
+        const board = new NodusBoard()
         const node = makeSimpleNode('test')
         node.setPosition(77, 88)
         board.graph.addNode(node)
@@ -63,25 +63,25 @@ describe('Serializer', () => {
     })
 
     it('deserialize restores connections', () => {
-        const board = new Board()
-        const src = new BaseNode('src', [], [new Port('number')])
-        const tgt = new BaseNode('tgt', [new Port('number')], [])
+        const board = new NodusBoard()
+        const src = new NodusBaseNode('src', [], [new NodusPort('number')])
+        const tgt = new NodusBaseNode('tgt', [new NodusPort('number')], [])
         board.graph.addNode(src)
         board.graph.addNode(tgt)
-        board.graph.addConnection(new Connection(src.outputs[0], tgt.inputs[0]))
+        board.graph.addConnection(new NodusConnection(src.outputs[0], tgt.inputs[0]))
 
         const data = board.serializer.serialize()
 
         board.serializer.deserialize(data, (componentId) => {
-            if (componentId === 'src') return new BaseNode('src', [], [new Port('number')])
-            return new BaseNode('tgt', [new Port('number')], [])
+            if (componentId === 'src') return new NodusBaseNode('src', [], [new NodusPort('number')])
+            return new NodusBaseNode('tgt', [new NodusPort('number')], [])
         })
 
         expect(board.graph.connections.size).toBe(1)
     })
 
     it('deserialize clears the existing graph first', () => {
-        const board = new Board()
+        const board = new NodusBoard()
         board.graph.addNode(makeSimpleNode('test'))
         board.graph.addNode(makeSimpleNode('test'))
 

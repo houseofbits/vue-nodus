@@ -1,6 +1,6 @@
 import { ref, toRaw, type Ref } from 'vue'
 
-export enum PortType {
+export enum NodusPortType {
     Input,
     Output,
 }
@@ -11,18 +11,18 @@ export enum PortType {
  * so you can use them in `computed` or `watch` expressions.
  *
  * @example
- * const input = new Port('number', '#4fc3f7')
- * const multiInput = new Port('number', '#4fc3f7', true)
- * const withDefault = new Port('number', '#4fc3f7', false, 0)
+ * const input = new NodusPort('number', '#4fc3f7')
+ * const multiInput = new NodusPort('number', '#4fc3f7', true)
+ * const withDefault = new NodusPort('number', '#4fc3f7', false, 0)
  */
-export default class Port {
+export default class NodusPort {
     id = crypto.randomUUID()
     /** Type tag used to validate connections. Only ports with the same `type` can be connected. */
     type: string
     /** CSS color for the port circle and its connections. Defaults to `'white'`. */
     color = "white"
-    /** Set automatically by `BaseNode` — `PortType.Input` or `PortType.Output`. */
-    ioType: PortType = PortType.Input
+    /** Set automatically by `NodusBaseNode` — `NodusPortType.Input` or `NodusPortType.Output`. */
+    ioType: NodusPortType = NodusPortType.Input
     /**
      * When `true`, this input port accepts multiple incoming connections.
      * When `false` (default), only one connection is allowed and further attempts are blocked.

@@ -1,16 +1,16 @@
 import { reactive } from 'vue'
-import { BaseNode, Port } from '../../models'
+import { NodusBaseNode, NodusPort } from '../../models'
 
 export type MathOperation = 'add' | 'subtract' | 'multiply' | 'divide'
 
-export default class MathNode extends BaseNode {
+export default class MathNode extends NodusBaseNode {
     state = reactive({ operation: 'add' as MathOperation })
 
     constructor() {
         super(
             'math-node',
-            [new Port('number', '#4fc3f7'), new Port('number', '#4fc3f7')],
-            [new Port('number', '#81c784')],
+            [new NodusPort('number', '#4fc3f7'), new NodusPort('number', '#4fc3f7')],
+            [new NodusPort('number', '#81c784')],
             { title: 'Math', width: 200, isPortAutoLayoutEnabled: false }
         )
         this.outputs[0].value = 0

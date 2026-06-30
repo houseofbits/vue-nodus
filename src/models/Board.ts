@@ -1,28 +1,28 @@
-import Graph from "./Graph";
-import Serializer from "./Serializer";
+import NodusGraph from "./Graph";
+import NodusSerializer from "./Serializer";
 import View from "./View";
 import type { DefineComponent } from 'vue';
 
 /**
- * Top-level orchestrator for the node editor. Create one `Board` per editor instance
+ * Top-level orchestrator for the node editor. Create one `NodusBoard` per editor instance
  * and pass it to `<VGraph :board="board" />`.
  *
  * @example
- * const board = new Board()
+ * const board = new NodusBoard()
  * board.registerComponent('my-node', MyNodeComponent)
  * board.graph.addNode(new MyNode())
  */
-export default class Board {
-    graph: Graph = new Graph()
+export default class NodusBoard {
+    graph: NodusGraph = new NodusGraph()
     view: View = new View(this.graph)
     registry = new Map<string, DefineComponent>()
-    serializer: Serializer = new Serializer(this.graph, this.view.viewport)
+    serializer: NodusSerializer = new NodusSerializer(this.graph, this.view.viewport)
 
     /**
      * Register a Vue component for a given node type.
-     * The `id` must exactly match the `componentId` set in the corresponding `BaseNode` constructor.
+     * The `id` must exactly match the `componentId` set in the corresponding `NodusBaseNode` constructor.
      * Call this before adding nodes of that type to the graph.
-     * @param id        - The component identifier (must match `BaseNode.componentId`).
+     * @param id        - The component identifier (must match `NodusBaseNode.componentId`).
      * @param component - The Vue component to render nodes of this type.
      */
     registerComponent(id: string, component: DefineComponent) {
