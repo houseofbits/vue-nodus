@@ -9,7 +9,8 @@
     "tsc": "yarn workspace @houseofbits/vue-nodus tsc",
     "demo:dev": "yarn workspace vue-nodus-demo dev",
     "demo:build": "yarn workspace vue-nodus-demo build",
-    "demo:preview": "yarn workspace vue-nodus-demo preview"
+    "demo:preview": "yarn workspace vue-nodus-demo preview",
+    "version": "npm version $npm_new_version --workspace vue-nodus --no-git-tag-version && git add vue-nodus/package.json"
   },
   "workspaces": [
     "vue-nodus",
