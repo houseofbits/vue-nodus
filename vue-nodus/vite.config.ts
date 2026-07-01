@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import dts from 'vite-plugin-dts'
 import { resolve } from 'path'
-import { libInjectCss } from 'vite-plugin-lib-inject-css'
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js'
 
 export default defineConfig({
   resolve: {
@@ -10,7 +10,7 @@ export default defineConfig({
   },
   plugins: [
     vue(),
-    libInjectCss(),
+    cssInjectedByJsPlugin(),
     dts({
       insertTypesEntry: true
     })
