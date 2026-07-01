@@ -13,7 +13,9 @@ Build visual node editors for Vue 3 — drag-and-drop node graphs like Blender's
 
 ## Demo
 
-Clone the repo and run the interactive playground:
+**[Live demo →](https://houseofbits.github.io/vue-nodus/)**
+
+Or clone the repo and run the interactive playground:
 
 ```bash
 git clone git@github.com:houseofbits/vue-nodus.git
