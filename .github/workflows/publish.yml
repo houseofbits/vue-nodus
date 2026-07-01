@@ -20,10 +20,10 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
-      - run: npm ci
+      - run: npm ci --workspace vue-nodus
 
-      - run: npm run build
+      - run: npm run build --workspace vue-nodus
 
-      - run: npm publish --access public
+      - run: npm publish --access public --workspace vue-nodus
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

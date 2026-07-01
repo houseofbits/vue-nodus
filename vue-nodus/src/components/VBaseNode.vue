@@ -9,12 +9,10 @@
         </div>
 
         <template v-if="props.node.isPortAutoLayoutEnabled">
-            <div v-if="props.node.inputs.length > 0" class="inputs"
-                :style="{ height: props.node.internalState.height }">
+            <div v-if="props.node.inputs.length > 0" class="inputs" :style="nodeHeight">
                 <VPort v-for="port in props.node.inputs" :key="port.id" :port="port"></VPort>
             </div>
-            <div v-if="props.node.outputs.length > 0" class="outputs"
-                :style="{ height: props.node.internalState.height }">
+            <div v-if="props.node.outputs.length > 0" class="outputs" :style="nodeHeight">
                 <VPort v-for="port in props.node.outputs" :key="port.id" :port="port"></VPort>
             </div>
         </template>
@@ -22,7 +20,8 @@
 </template>
 
 <script lang="ts" setup>
-import NodusBaseNode from '../models/BaseNode.js';
+import { computed } from 'vue'
+import NodusBaseNode from '../models/BaseNode.js'
 import VPort from './VPort.vue'
 
 const props = defineProps({
@@ -35,6 +34,12 @@ const props = defineProps({
         default: false
     },
 })
+
+const nodeHeight = computed(() => {
+    return {
+        height: props.node.internalState.height + 'px'
+    }
+});
 
 </script>
 
@@ -61,8 +66,8 @@ const props = defineProps({
     background: var(--nodus-node-title-bg, linear-gradient(14deg, rgba(0, 132, 184, 1) 0%, rgba(91, 176, 175, 1) 100%));
     color: var(--nodus-node-title-color, white);
     padding: 8px;
-    padding-top:4px;
-    padding-bottom:4px;
+    padding-top: 4px;
+    padding-bottom: 4px;
     font-weight: 600;
     font-size: 14px;
     flex-shrink: 0;
