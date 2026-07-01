@@ -96,7 +96,7 @@ export default class View {
     }
 
     onKeyDown(e: KeyboardEvent) {
-        if (e.key === "Delete") {
+        if (e.key === "Delete" || e.key === "Backspace") {
             for (const conn of this.selection.getSelectedConnections()) {
                 this.graph.removeConnection(conn.id)
             }
