@@ -1,7 +1,7 @@
 import NodusGraph from "./Graph";
 import NodusSerializer from "./Serializer";
 import View from "./View";
-import type { DefineComponent } from 'vue';
+import type { Component } from 'vue';
 
 /**
  * Top-level orchestrator for the node editor. Create one `NodusBoard` per editor instance
@@ -15,7 +15,7 @@ import type { DefineComponent } from 'vue';
 export default class NodusBoard {
     graph: NodusGraph = new NodusGraph()
     view: View = new View(this.graph)
-    registry = new Map<string, DefineComponent>()
+    registry = new Map<string, Component>()
     serializer: NodusSerializer = new NodusSerializer(this.graph, this.view.viewport)
 
     /**
@@ -25,7 +25,7 @@ export default class NodusBoard {
      * @param id        - The component identifier (must match `NodusBaseNode.componentId`).
      * @param component - The Vue component to render nodes of this type.
      */
-    registerComponent(id: string, component: DefineComponent) {
+    registerComponent(id: string, component: Component) {
         if (this.registry.has(id)) {
             console.warn(`Component already registered: ${id}`);
 
@@ -40,7 +40,7 @@ export default class NodusBoard {
      * @param id - The component identifier.
      * @returns The registered component, or `undefined` if not registered.
      */
-    getComponent(id: string): DefineComponent | undefined {
+    getComponent(id: string): Component | undefined {
         return this.registry.get(id);
     }
 
