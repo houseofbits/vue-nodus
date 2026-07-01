@@ -45,13 +45,5 @@ function create(name: string) {
 
 <template>
   <VGraph :board="board" />
-  <VNodeSelector :items="items" class="command-button" @select="(item) => create(item.value)" />
+  <VNodeSelector :items="items" class="absolute top-2 left-2" @select="(item) => create(item.value)" />
 </template>
-
-<style>
-.command-button {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-}
-</style>

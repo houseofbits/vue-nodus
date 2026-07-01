@@ -13,42 +13,13 @@ const props = defineProps({
 
 <template>
     <VNodeRow :output-port="props.node.outputs[0]">
-        <div class="wrapper">
-            <input class="input" type="number" v-model="props.node.state.value" @input="node.compute()" />
+        <div class="p-4">
+            <input
+                class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-md bg-white text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-3 focus:ring-blue-500/30 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                type="number"
+                v-model="props.node.state.value"
+                @input="node.compute()"
+            />
         </div>
     </VNodeRow>
 </template>
-
-
-<style scoped>
-.wrapper {
-    padding: 16px;
-}
-
-.input {
-    width: 100%;
-    padding: 10px 12px;
-    font-size: 14px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background: white;
-    color: #111827;
-    outline: none;
-    transition: border 0.15s, box-shadow 0.15s;
-}
-
-.input::placeholder {
-    color: #9ca3af;
-}
-
-.input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-}
-
-.input:disabled {
-    background: #f3f4f6;
-    color: #6b7280;
-    cursor: not-allowed;
-}
-</style>

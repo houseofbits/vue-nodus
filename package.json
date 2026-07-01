@@ -1,5 +1,16 @@
 {
   "private": true,
+  "scripts": {
+    "build": "yarn workspace @houseofbits/vue-nodus build",
+    "dev": "yarn workspace @houseofbits/vue-nodus dev",
+    "demo": "yarn workspace @houseofbits/vue-nodus demo",
+    "test": "yarn workspace @houseofbits/vue-nodus test",
+    "test:watch": "yarn workspace @houseofbits/vue-nodus test:watch",
+    "tsc": "yarn workspace @houseofbits/vue-nodus tsc",
+    "demo:dev": "yarn workspace vue-nodus-demo dev",
+    "demo:build": "yarn workspace vue-nodus-demo build",
+    "demo:preview": "yarn workspace vue-nodus-demo preview"
+  },
   "workspaces": [
     "vue-nodus",
     "vue-nodus-demo"
