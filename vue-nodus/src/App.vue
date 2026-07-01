@@ -18,54 +18,11 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { NodusBoard, NodusConnection } from './models'
+import { NodusBoard } from './models'
 import { VGraph } from './components'
-import NumberNode from './demo/nodes/NumberNode'
-import MathNode from './demo/nodes/MathNode'
-import DisplayNode from './demo/nodes/DisplayNode'
-import NumberNodeComponent from './demo/components/NumberNode.vue'
-import MathNodeComponent from './demo/components/MathNode.vue'
-import DisplayNodeComponent from './demo/components/DisplayNode.vue'
 
 const savedData = ref<string | null>(null)
-
-function createBoard() {
-    const b = new NodusBoard()
-    b.registerComponent('number-node', NumberNodeComponent as any)
-    b.registerComponent('math-node', MathNodeComponent as any)
-    b.registerComponent('display-node', DisplayNodeComponent as any)
-    return b
-}
-
-function buildInitialGraph(b: NodusBoard) {
-    const numA = new NumberNode()
-    numA.setPosition(80, 80)
-    numA.outputs[0].value = 3
-
-    const numB = new NumberNode()
-    numB.setPosition(80, 210)
-    numB.outputs[0].value = 4
-
-    const math = new MathNode()
-    math.setPosition(340, 130)
-
-    const display = new DisplayNode()
-    display.setPosition(620, 175)
-
-    b.graph.addNode(numA)
-    b.graph.addNode(numB)
-    b.graph.addNode(math)
-    b.graph.addNode(display)
-
-    b.graph.addConnection(new NodusConnection(numA.outputs[0], math.inputs[0]))
-    b.graph.addConnection(new NodusConnection(numB.outputs[0], math.inputs[1]))
-    b.graph.addConnection(new NodusConnection(math.outputs[0], display.inputs[0]))
-
-    b.graph.evaluate()
-}
-
-const board = createBoard()
-buildInitialGraph(board)
+const board = new NodusBoard()
 
 function saveGraph() {
     savedData.value = JSON.stringify(board.serializer.serialize())
@@ -75,19 +32,13 @@ function loadGraph() {
     if (!savedData.value) return
     const data = JSON.parse(savedData.value)
     board.serializer.deserialize(data, (componentId) => {
-        switch (componentId) {
-            case 'number-node': return new NumberNode()
-            case 'math-node':   return new MathNode()
-            case 'display-node': return new DisplayNode()
-            default: throw new Error(`Unknown node type: ${componentId}`)
-        }
+        throw new Error(`Unknown node type: ${componentId}`)
     })
 }
 
 function resetGraph() {
     const nodeIds = [...board.graph.nodes.keys()]
     nodeIds.forEach(id => board.graph.removeNode(id))
-    buildInitialGraph(board)
 }
 </script>
 

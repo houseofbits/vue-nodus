@@ -7,7 +7,7 @@
                 <template v-if="node[1].isThinComponent">
                     <VBaseNode :key="node[0]" :node="node[1]" :is-selected="isSelected(node[1])"
                         class="enable-pointer-events" :style="getNodeStyle(node[1])"
-                        @mousedown="e => onNodeClick(e, node[1])">
+                        @mousedown="(e: MouseEvent) => onNodeClick(e, node[1])">
                         <template #content>
                             <component :is="getComponent(node[1])" :node="node[1]" />
                         </template>
@@ -16,7 +16,7 @@
 
                 <component v-else :is="getComponent(node[1])" :key="node[0]" :node="node[1]"
                     :is-selected="isSelected(node[1])" :style="getNodeStyle(node[1])" class="enable-pointer-events"
-                    @mousedown="e => onNodeClick(e, node[1])" />
+                    @mousedown="(e: MouseEvent) => onNodeClick(e, node[1])" />
             </template>
         </div>
     </div>
