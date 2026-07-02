@@ -1,6 +1,6 @@
 {
   "name": "@houseofbits/vue-nodus",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A Vue 3 node editor and blueprint library.",
   "type": "module",
   "license": "MIT",
