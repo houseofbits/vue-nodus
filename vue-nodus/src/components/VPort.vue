@@ -1,5 +1,5 @@
 <template>
-    <div :style="style" :class="['port', { 'port--inactive': isInactive }]" ref="portEl" @pointerdown.stop.prevent="board.graph.selectPort(props.port)" />
+    <div :style="style" :class="['port', { 'port--inactive': isInactive }]" ref="portEl" @pointerdown.stop.prevent="board.graph.selectPort(props.port, $event)" />
 </template>
 
 <script lang="ts" setup>

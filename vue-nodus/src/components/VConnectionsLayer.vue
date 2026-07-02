@@ -52,7 +52,7 @@
             </template>
         </g>
     </svg>
-    <svg v-if="board.graph.selectedPort.value" class="connections">
+    <svg v-if="board.graph.selectedPort.value && !board.graph.selectedPortIsTouch.value" class="connections">
         <g :transform="cameraStyle">
             <path :d="getActiveSVGPath(board.graph.selectedPort.value)" :stroke="board.graph.selectedPort.value.color"
                 fill="none" :style="{ strokeWidth: 'var(--nodus-connection-width, 4)' }" />

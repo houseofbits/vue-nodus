@@ -7,6 +7,7 @@ export default class NodusGraph {
     nodes: Map<string, NodusBaseNode> = reactive(new Map())
     connections: Map<string, NodusConnection> = reactive(new Map())
     selectedPort = shallowRef<NodusPort | null>(null)
+    selectedPortIsTouch = shallowRef(false)
     nextZIndex = 1
 
     private portToNode: Map<string, NodusBaseNode> = new Map()
@@ -116,27 +117,27 @@ export default class NodusGraph {
      * Logs a `console.warn` if the connection attempt fails due to a type or direction mismatch,
      * making it easy to diagnose why a connection did not form.
      */
-    selectPort(port: NodusPort) {
+    selectPort(port: NodusPort, event?: PointerEvent) {
         if (!this.selectedPort.value) {
-            this.selectedPort.value = port
+            this.setSelectedPort(port, event?.pointerType === 'touch')
             return
         }
 
         if (this.selectedPort.value.id === port.id) {
-            this.selectedPort.value = null;
+            this.setSelectedPort(null);
             return
         }
 
         if (this.selectedPort.value.ioType === port.ioType) {
             const direction = port.ioType === NodusPortType.Input ? 'inputs' : 'outputs'
             console.warn(`[vue-nodus] Cannot connect: both ports are ${direction}. One must be an input and one an output.`)
-            this.selectedPort.value = null;
+            this.setSelectedPort(null);
             return
         }
 
         if (this.selectedPort.value.type !== port.type) {
             console.warn(`[vue-nodus] Cannot connect: port type "${this.selectedPort.value.type}" is incompatible with "${port.type}".`)
-            this.selectedPort.value = null;
+            this.setSelectedPort(null);
             return
         }
 
@@ -149,7 +150,7 @@ export default class NodusGraph {
         )
 
         if (existing) {
-            this.selectedPort.value = null;
+            this.setSelectedPort(null);
             return
         }
 
@@ -165,15 +166,20 @@ export default class NodusGraph {
             this.addConnection(new NodusConnection(source, target, target.color))
         }
 
-        this.selectedPort.value = null
+        this.setSelectedPort(null)
     }
 
     clearPortSelection() {
-        this.selectedPort.value = null
+        this.setSelectedPort(null)
     }
 
     bringToFront(node: NodusBaseNode) {
         node.setZIndex(this.nextZIndex++)
+    }
+
+    private setSelectedPort(port: NodusPort | null, isTouch = false) {
+        this.selectedPort.value = port
+        this.selectedPortIsTouch.value = isTouch
     }
 
     private findPort(portId: string): NodusPort | undefined {
