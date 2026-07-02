@@ -29,9 +29,11 @@ export default class View {
     portRegistry: PortRegistry
     selection = new SelectionController()
 
+    activePointers = new Map<number, Vector2>()
+
     _onMove = this.onMove.bind(this)
-    _onMouseDown = this.onMouseDown.bind(this)
-    _onMouseUp = this.onMouseUp.bind(this)
+    _onPointerDown = this.onPointerDown.bind(this)
+    _onPointerUp = this.onPointerUp.bind(this)
     _onWheel = this.onWheel.bind(this)
     _onKeyDown = this.onKeyDown.bind(this)
 
@@ -50,15 +52,40 @@ export default class View {
         }
     }
 
-    onMouseDown(event: MouseEvent) {
-        if (event.button !== 2) return
+    onPointerDown(event: PointerEvent) {
+        this.activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+
+        if (this.activePointers.size === 2) {
+            this.viewport.pinchStart(this.pinchDistance())
+            return
+        }
+
+        if (this.activePointers.size > 2) return
+
+        const isTouchPanStart = event.pointerType === 'touch' && !this.isInteractiveTarget(event.target)
+
+        if (event.button !== 2 && !isTouchPanStart) return
 
         this.graph.clearPortSelection()
 
         this.viewport.panStart(event.clientX, event.clientY)
     }
 
-    onMove(event: MouseEvent) {
+    private isInteractiveTarget(target: EventTarget | null): boolean {
+        if (!(target instanceof Element)) return false
+        return target.closest('.nodus-node') !== null || target.closest('.port') !== null
+    }
+
+    onMove(event: PointerEvent) {
+        if (this.activePointers.has(event.pointerId)) {
+            this.activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+        }
+
+        if (this.activePointers.size === 2) {
+            this.updatePinch()
+            return
+        }
+
         const mouseWOrld = this.viewport.screenToWorld(event.clientX, event.clientY)
 
         this.state.mouseX = mouseWOrld.x
@@ -78,6 +105,23 @@ export default class View {
         this.portRegistry.updateAll()
     }
 
+    private pinchDistance(): number {
+        const [a, b] = this.activePointers.values()
+        return Math.hypot(a.x - b.x, a.y - b.y)
+    }
+
+    private updatePinch() {
+        if (!this.boardElement) return
+
+        const rect = this.boardElement.getBoundingClientRect()
+        const [a, b] = this.activePointers.values()
+
+        const midX = (a.x + b.x) / 2 - rect.left
+        const midY = (a.y + b.y) / 2 - rect.top
+
+        this.viewport.applyPinch(this.pinchDistance(), midX, midY)
+    }
+
     onWheel(event: WheelEvent) {
         if (!this.boardElement) {
             return
@@ -89,7 +133,9 @@ export default class View {
         this.viewport.applyWheel(event, rect)
     }
 
-    onMouseUp() {
+    onPointerUp(event: PointerEvent) {
+        this.activePointers.delete(event.pointerId)
+
         this.state.isDraggingNode = false
 
         this.viewport.panStop()
@@ -112,9 +158,10 @@ export default class View {
             return
         }
 
-        this.boardElement.removeEventListener('mousemove', this._onMove)
-        this.boardElement.removeEventListener('mousedown', this._onMouseDown)
-        this.boardElement.removeEventListener('mouseup', this._onMouseUp)
+        this.boardElement.removeEventListener('pointermove', this._onMove)
+        this.boardElement.removeEventListener('pointerdown', this._onPointerDown)
+        this.boardElement.removeEventListener('pointerup', this._onPointerUp)
+        this.boardElement.removeEventListener('pointercancel', this._onPointerUp)
         this.boardElement.removeEventListener('wheel', this._onWheel)
 
         window.removeEventListener('keydown', this._onKeyDown)
@@ -124,9 +171,10 @@ export default class View {
         this.unmount()
         this.boardElement = element
 
-        this.boardElement.addEventListener('mousemove', this._onMove)
-        this.boardElement.addEventListener('mousedown', this._onMouseDown)
-        this.boardElement.addEventListener('mouseup', this._onMouseUp)
+        this.boardElement.addEventListener('pointermove', this._onMove)
+        this.boardElement.addEventListener('pointerdown', this._onPointerDown)
+        this.boardElement.addEventListener('pointerup', this._onPointerUp)
+        this.boardElement.addEventListener('pointercancel', this._onPointerUp)
         this.boardElement.addEventListener('wheel', this._onWheel, { passive: false })
 
         window.addEventListener('keydown', this._onKeyDown)

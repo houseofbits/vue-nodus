@@ -1,5 +1,5 @@
 <template>
-    <div :style="style" :class="['port', { 'port--inactive': isInactive }]" ref="portEl" @mousedown.stop.prevent="board.graph.selectPort(props.port)" />
+    <div :style="style" :class="['port', { 'port--inactive': isInactive }]" ref="portEl" @pointerdown.stop.prevent="board.graph.selectPort(props.port)" />
 </template>
 
 <script lang="ts" setup>
@@ -63,6 +63,7 @@ const isInactive = computed(() => {
     height: var(--nodus-port-size, 20px);
     border-radius: 50%;
     background-color: white;
+    touch-action: none;
 }
 
 .port:not(.port--inactive):hover {

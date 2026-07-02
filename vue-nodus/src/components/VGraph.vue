@@ -7,7 +7,7 @@
                 <template v-if="node[1].isThinComponent">
                     <VBaseNode :key="node[0]" :node="node[1]" :is-selected="isSelected(node[1])"
                         class="enable-pointer-events" :style="getNodeStyle(node[1])"
-                        @mousedown="(e: MouseEvent) => onNodeClick(e, node[1])">
+                        @pointerdown="(e: PointerEvent) => onNodeClick(e, node[1])">
                         <template #content>
                             <component :is="getComponent(node[1])" :node="node[1]" />
                         </template>
@@ -16,7 +16,7 @@
 
                 <component v-else :is="getComponent(node[1])" :key="node[0]" :node="node[1]"
                     :is-selected="isSelected(node[1])" :style="getNodeStyle(node[1])" class="enable-pointer-events"
-                    @mousedown="(e: MouseEvent) => onNodeClick(e, node[1])" />
+                    @pointerdown="(e: PointerEvent) => onNodeClick(e, node[1])" />
             </template>
         </div>
     </div>
@@ -107,7 +107,7 @@ function onBoardClick(event: MouseEvent) {
     }
 }
 
-function onNodeClick(event: MouseEvent, node: NodusBaseNode) {
+function onNodeClick(event: PointerEvent, node: NodusBaseNode) {
     props.board.view.nodeDragStart(node, event);
 }
 
@@ -158,6 +158,7 @@ onUnmounted(() => {
     height: 100%;
     overflow: hidden;
     background-color: var(--nodus-canvas-bg, rgb(48, 48, 48));
+    touch-action: none;
 }
 
 .transform-wrapper {
@@ -169,6 +170,7 @@ onUnmounted(() => {
 
 .enable-pointer-events {
     pointer-events: all;
+    touch-action: none;
 }
 
 .grid {

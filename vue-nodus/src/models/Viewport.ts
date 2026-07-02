@@ -21,6 +21,9 @@ export default class Viewport {
     panStartPanX = 0
     panStartPanY = 0
 
+    pinchStartDistance = 0
+    pinchStartZoom = 1
+
     constructor() {
 
     }
@@ -73,20 +76,41 @@ export default class Viewport {
         const zoomSpeed = 0.1
         const oldZoom = this.state.zoom
 
-        let newZoom = event.deltaY < 0
+        const newZoom = event.deltaY < 0
             ? oldZoom * (1 + zoomSpeed)
             : oldZoom / (1 + zoomSpeed)
-
-        newZoom = Math.max(0.3, Math.min(3, newZoom))
 
         const mouseX = event.clientX - rect.left
         const mouseY = event.clientY - rect.top
 
-        const worldX = (mouseX - this.state.panX) / oldZoom
-        const worldY = (mouseY - this.state.panY) / oldZoom
+        this.zoomTo(newZoom, mouseX, mouseY)
+    }
+
+    pinchStart(distance: number) {
+        this.pinchStartDistance = distance
+        this.pinchStartZoom = this.state.zoom
+    }
+
+    applyPinch(distance: number, screenX: number, screenY: number) {
+        if (this.pinchStartDistance === 0) {
+            return
+        }
+
+        const scale = distance / this.pinchStartDistance
+
+        this.zoomTo(this.pinchStartZoom * scale, screenX, screenY)
+    }
+
+    private zoomTo(newZoom: number, screenX: number, screenY: number) {
+        const oldZoom = this.state.zoom
+
+        newZoom = Math.max(0.3, Math.min(3, newZoom))
+
+        const worldX = (screenX - this.state.panX) / oldZoom
+        const worldY = (screenY - this.state.panY) / oldZoom
 
         this.state.zoom = newZoom
-        this.state.panX = mouseX - worldX * newZoom
-        this.state.panY = mouseY - worldY * newZoom
+        this.state.panX = screenX - worldX * newZoom
+        this.state.panY = screenY - worldY * newZoom
     }
 }
