@@ -1,6 +1,6 @@
 <template>
     <div class="nodus-node" :class="{ 'nodus-selected': isSelected }">
-        <div class="nodus-title-bar">
+        <div class="nodus-title-bar nodus-drag-handle">
             <slot name="title">{{ node.internalState.title }}</slot>
             <button v-if="isSelected" type="button" class="nodus-delete-btn"
                 aria-label="Delete node" @pointerdown.stop @click.stop="onDelete">&times;</button>

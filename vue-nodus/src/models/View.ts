@@ -42,14 +42,20 @@ export default class View {
         this.portRegistry = new PortRegistry(this.viewport)
     }
 
-    nodeDragStart(node: NodusBaseNode, event: MouseEvent) {
+    /** Select `node` (respecting shift-click multi-select) and raise it to front. Does not arm dragging. */
+    selectNode(node: NodusBaseNode, event: MouseEvent) {
         this.selection.selectNode(node, event.shiftKey)
-        this.dragStartWorld = this.viewport.screenToWorld(event.clientX, event.clientY)
-        this.selection.snapshotPositions()
-        this.state.isDraggingNode = true;
         if (this.selection.getSelected().length === 1) {
             this.graph.bringToFront(node)
         }
+    }
+
+    /** Select `node` and begin tracking a drag gesture for the current pointer. */
+    nodeDragStart(node: NodusBaseNode, event: MouseEvent) {
+        this.selectNode(node, event)
+        this.dragStartWorld = this.viewport.screenToWorld(event.clientX, event.clientY)
+        this.selection.snapshotPositions()
+        this.state.isDraggingNode = true;
     }
 
     onPointerDown(event: PointerEvent) {

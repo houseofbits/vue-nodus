@@ -15,6 +15,10 @@ function keyDownFrom(key: string, target: EventTarget) {
     return event
 }
 
+function pointerDown({ shiftKey = false, clientX = 0, clientY = 0 } = {}) {
+    return new MouseEvent('pointerdown', { shiftKey, clientX, clientY })
+}
+
 describe('View.onKeyDown', () => {
     let graph: NodusGraph
     let view: View
@@ -59,6 +63,41 @@ describe('View.onKeyDown', () => {
         const div = document.createElement('div')
         view.onKeyDown(keyDownFrom('Delete', div))
         expect(graph.nodes.has(node.id)).toBe(false)
+    })
+})
+
+describe('View.selectNode / View.nodeDragStart', () => {
+    let graph: NodusGraph
+    let view: View
+    let node: NodusBaseNode
+
+    beforeEach(() => {
+        graph = new NodusGraph()
+        view = new View(graph)
+        node = makeNode()
+        graph.addNode(node)
+    })
+
+    it('selectNode selects the node and brings it to front without arming a drag', () => {
+        const zIndexBefore = node.internalState.zIndex
+
+        view.selectNode(node, pointerDown())
+
+        expect(view.selection.isSelected(node)).toBe(true)
+        expect(node.internalState.zIndex).toBeGreaterThan(zIndexBefore)
+        expect(view.state.isDraggingNode).toBe(false)
+        expect(view.dragStartWorld).toBeNull()
+    })
+
+    it('nodeDragStart selects the node, brings it to front, and arms a drag', () => {
+        const zIndexBefore = node.internalState.zIndex
+
+        view.nodeDragStart(node, pointerDown({ clientX: 10, clientY: 20 }))
+
+        expect(view.selection.isSelected(node)).toBe(true)
+        expect(node.internalState.zIndex).toBeGreaterThan(zIndexBefore)
+        expect(view.state.isDraggingNode).toBe(true)
+        expect(view.dragStartWorld).not.toBeNull()
     })
 })
 

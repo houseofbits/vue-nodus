@@ -15,6 +15,7 @@ import ClampValueNode from './models/ClampValueNode.ts';
 import VConditionNode from './components/VConditionNode.vue';
 import ConditionValueNode from './models/ConditionValueNode.ts';
 import VNodeSelector from './components/VNodeSelector.vue';
+import { populateRpgDamageCalculator } from './demos/rpgDamageCalculator.ts';
 
 const board = new NodusBoard();
 
@@ -23,6 +24,8 @@ board.registerComponent("OutputValue", VOutputNode);
 board.registerComponent("MathNode", VMathNode);
 board.registerComponent("ClampNode", VClampNode);
 board.registerComponent("ConditionNode", VConditionNode);
+
+populateRpgDamageCalculator(board);
 
 const registry: Record<string, new () => any> = {
   ConstantValueNode,

@@ -107,8 +107,21 @@ function onBoardClick(event: MouseEvent) {
     }
 }
 
+function isWithinDragHandle(nodeRoot: Element, target: Element | null): boolean {
+    if (!target) return false
+    const hasHandle = nodeRoot.matches('.nodus-drag-handle') || nodeRoot.querySelector('.nodus-drag-handle') !== null
+    return !hasHandle || target.closest('.nodus-drag-handle') !== null
+}
+
 function onNodeClick(event: PointerEvent, node: NodusBaseNode) {
-    props.board.view.nodeDragStart(node, event);
+    const nodeRoot = event.currentTarget as Element | null
+    const target = event.target as Element | null
+
+    if (nodeRoot && isWithinDragHandle(nodeRoot, target)) {
+        props.board.view.nodeDragStart(node, event);
+    } else {
+        props.board.view.selectNode(node, event);
+    }
 }
 
 function isSelected(node: NodusBaseNode) {
