@@ -33,6 +33,22 @@
                 :style="{ strokeWidth: 'var(--nodus-connection-width, 4)' }"
                 @click.stop="selectConnection(connection, $event)"
             />
+
+            <!-- Touch delete marker -->
+            <g
+                v-if="board.view.selection.isConnectionSelected(connection)"
+                class="nodus-connection-delete-btn"
+                :transform="deleteMarkerTransform(connection)"
+                @click.stop="board?.view.deleteConnection(connection)"
+            >
+                <circle r="10" :fill="'var(--nodus-connection-delete-bg, rgba(0, 0, 0, 0.55))'" />
+                <text
+                    text-anchor="middle"
+                    dominant-baseline="central"
+                    :fill="'var(--nodus-connection-delete-color, white)'"
+                    font-size="14"
+                >&times;</text>
+            </g>
             </template>
         </g>
     </svg>
@@ -73,6 +89,16 @@ function selectConnection(connection: NodusConnection, event: MouseEvent) {
     board?.graph.clearPortSelection()
 }
 
+function deleteMarkerTransform(connection: NodusConnection): string {
+    try {
+        const mid = board?.view.getConnectionMidpoint(connection)
+        if (!mid) return ''
+        return `translate(${mid.x}, ${mid.y})`
+    } catch {
+        return ''
+    }
+}
+
 const cameraStyle = computed(() => {
     return `translate(${board.view.viewport.state.panX}, ${board.view.viewport.state.panY}) scale(${board.view.viewport.state.zoom})`
 })
@@ -86,5 +112,16 @@ const cameraStyle = computed(() => {
     left: 0;
     width: 100%;
     height: 100%;
+}
+
+.nodus-connection-delete-btn {
+    display: none;
+    cursor: pointer;
+}
+
+@media (hover: none), (pointer: coarse) {
+    .nodus-connection-delete-btn {
+        display: block;
+    }
 }
 </style>

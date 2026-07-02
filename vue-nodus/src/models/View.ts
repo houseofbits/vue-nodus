@@ -2,7 +2,7 @@ import { reactive } from 'vue';
 import Viewport from './Viewport.js'
 import PortRegistry from './PortRegistry.js'
 import SelectionController from './SelectionController.js'
-import { buildBezierPath } from '../helpers/svgBezier.js'
+import { buildBezierPath, getBezierMidpoint } from '../helpers/svgBezier.js'
 import NodusGraph from './Graph.js';
 import NodusBaseNode from './BaseNode.js';
 import Vector2 from '../types/Vector2'
@@ -76,6 +76,13 @@ export default class View {
         return target.closest('.nodus-node') !== null || target.closest('.port') !== null
     }
 
+    private isEditableTarget(target: EventTarget | null): boolean {
+        if (!(target instanceof Element)) return false
+        if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return true
+        if ((target as HTMLElement).isContentEditable) return true
+        return target.closest('[contenteditable="true"], [contenteditable=""]') !== null
+    }
+
     onMove(event: PointerEvent) {
         if (this.activePointers.has(event.pointerId)) {
             this.activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
@@ -143,14 +150,33 @@ export default class View {
 
     onKeyDown(e: KeyboardEvent) {
         if (e.key === "Delete" || e.key === "Backspace") {
-            for (const conn of this.selection.getSelectedConnections()) {
-                this.graph.removeConnection(conn.id)
-            }
-            for (const selected of this.selection.getSelected()) {
-                this.graph.removeNode(selected.node.id)
-            }
-            this.selection.clear()
+            if (this.isEditableTarget(e.target)) return
+
+            this.deleteSelected()
         }
+    }
+
+    /** Delete every currently selected node and connection. */
+    deleteSelected() {
+        for (const conn of this.selection.getSelectedConnections()) {
+            this.graph.removeConnection(conn.id)
+        }
+        for (const selected of this.selection.getSelected()) {
+            this.graph.removeNode(selected.node.id)
+        }
+        this.selection.clear()
+    }
+
+    /** Delete a single node (and its connections), regardless of the current selection. */
+    deleteNode(node: NodusBaseNode) {
+        this.graph.removeNode(node.id)
+        this.selection.clear()
+    }
+
+    /** Delete a single connection, regardless of the current selection. */
+    deleteConnection(connection: NodusConnection) {
+        this.graph.removeConnection(connection.id)
+        this.selection.clear()
     }
 
     unmount() {
@@ -193,6 +219,17 @@ export default class View {
             target.x, target.y,
             false
         );
+    }
+
+    getConnectionMidpoint(connection: NodusConnection): Vector2 {
+        const source = this.portRegistry.get(connection.sourcePortId);
+        const target = this.portRegistry.get(connection.targetPortId);
+
+        if (source === undefined || target === undefined) {
+            throw Error('Port not found')
+        }
+
+        return getBezierMidpoint(source.x, source.y, target.x, target.y, false)
     }
 
     getActiveSVGPath(sourcePort: NodusPort) {

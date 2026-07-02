@@ -226,6 +226,7 @@ Port and connection **colors** are set per-instance via `NodusPort.color` and `N
 | Zoom | Scroll wheel |
 | Connect ports | Click source port, then click target port (same type, opposite direction) |
 | Delete selected | Delete key |
+| Delete on touch | Tap the × on a selected node's title bar, or on a selected connection |
 
 ## Serialization
 

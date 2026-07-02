@@ -2,6 +2,8 @@
     <div class="nodus-node" :class="{ 'nodus-selected': isSelected }">
         <div class="nodus-title-bar">
             <slot name="title">{{ node.internalState.title }}</slot>
+            <button v-if="isSelected" type="button" class="nodus-delete-btn"
+                aria-label="Delete node" @pointerdown.stop @click.stop="onDelete">&times;</button>
         </div>
 
         <div class="nodus-window-content">
@@ -20,9 +22,13 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import NodusBaseNode from '../models/BaseNode.js'
+import NodusBoard from '../models/Board.js'
 import VPort from './VPort.vue'
+
+const board = inject<NodusBoard>('board')
+if (!board) throw new Error('VBaseNode must be used inside VGraph')
 
 const props = defineProps({
     node: {
@@ -40,6 +46,10 @@ const nodeHeight = computed(() => {
         height: props.node.internalState.height + 'px'
     }
 });
+
+function onDelete() {
+    board?.view.deleteNode(props.node)
+}
 
 </script>
 
@@ -121,5 +131,29 @@ const nodeHeight = computed(() => {
     align-items: center;
     justify-content: space-around;
     cursor: pointer;
+}
+
+.nodus-delete-btn {
+    display: none;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    margin-left: 8px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--nodus-node-delete-bg, rgba(0, 0, 0, 0.25));
+    color: var(--nodus-node-delete-color, white);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+@media (hover: none), (pointer: coarse) {
+    .nodus-delete-btn {
+        display: inline-flex;
+    }
 }
 </style>
