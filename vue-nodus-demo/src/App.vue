@@ -59,6 +59,11 @@ function create(name: string) {
 </script>
 
 <template>
-  <VGraph :board="board" />
+  <VGraph :board="board">
+    <div class="absolute text-white" style="left: 860px; top: 480px;">
+      <p class="text-base font-semibold">RPG Damage Calculator</p>
+      <p class="text-sm max-w-sm">Edit the constants on the left and watch the damage recompute live. A critical hit triggers when Attack Roll &ge; Defense Threshold.</p>
+    </div>
+  </VGraph>
   <VNodeSelector :items="items" class="absolute top-2 left-2" @select="(item) => create(item.value)" />
 </template>

@@ -18,6 +18,16 @@
                     :is-selected="isSelected(node[1])" :style="getNodeStyle(node[1])" class="enable-pointer-events"
                     @pointerdown="(e: PointerEvent) => onNodeClick(e, node[1])" />
             </template>
+
+            <!--
+              Content here pans/zooms with the graph because it lives inside
+              .transform-wrapper — position it with absolute left/top in board-space
+              pixels, matching node coordinates. Note: .transform-wrapper has
+              pointer-events:none, and it does not leak VGraph's scoped
+              .enable-pointer-events class to slotted content, so interactive slot
+              content must set pointer-events:auto itself.
+            -->
+            <slot />
         </div>
     </div>
 </template>
@@ -40,6 +50,10 @@ const props = defineProps({
         default: () => ({}),
     },
 })
+
+defineSlots<{
+    default?(): any
+}>()
 
 const boardEl = ref<HTMLElement>();
 
