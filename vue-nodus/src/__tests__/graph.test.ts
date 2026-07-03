@@ -8,6 +8,27 @@ function makeNode(componentId = 'test', inputs: NodusPort[] = [], outputs: Nodus
     return new NodusBaseNode(componentId, inputs, outputs)
 }
 
+/** Waits for every pending reactive flush (however many microtask layers deep) to settle. */
+function flush(): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, 0))
+}
+
+class RecordingNode extends NodusBaseNode {
+    calls: unknown[][] = []
+    compute() {
+        this.calls.push(this.inputs.map(p => p.value))
+    }
+}
+
+class PassThroughNode extends NodusBaseNode {
+    constructor(id: string) {
+        super(id, [new NodusPort('number')], [new NodusPort('number')])
+    }
+    compute() {
+        this.outputs[0].value = this.inputs[0].value
+    }
+}
+
 describe('Graph', () => {
     let graph: NodusGraph
 
@@ -96,6 +117,112 @@ describe('Graph', () => {
 
             graph.addConnection(new NodusConnection(output, input))
             expect(input.value).toBe(42)
+        })
+    })
+
+    describe('reactive compute propagation', () => {
+        it('computes the target node once when a single upstream value changes', async () => {
+            const output = new NodusPort('number', 'white', false, 0)
+            const src = makeNode('src', [], [output])
+            const tgt = new RecordingNode('tgt', [new NodusPort('number')], [])
+            graph.addNode(src)
+            graph.addNode(tgt)
+            graph.addConnection(new NodusConnection(output, tgt.inputs[0]))
+
+            output.value = 5
+            await flush()
+
+            expect(tgt.calls).toEqual([[5]])
+        })
+
+        it('computes a convergent node once with both fresh inputs when fed by paths of unequal length', async () => {
+            // a -> b1 -> c(in0)              (2 hops to c)
+            // a -> b2 -> b3 -> c(in1)        (3 hops to c)
+            const a = makeNode('a', [], [new NodusPort('number', 'white', false, 0)])
+            const b1 = new PassThroughNode('b1')
+            const b2 = new PassThroughNode('b2')
+            const b3 = new PassThroughNode('b3')
+            const c = new RecordingNode('c', [new NodusPort('number'), new NodusPort('number')], [])
+
+            for (const n of [a, b1, b2, b3, c]) graph.addNode(n)
+
+            graph.addConnection(new NodusConnection(a.outputs[0], b1.inputs[0]))
+            graph.addConnection(new NodusConnection(b1.outputs[0], c.inputs[0]))
+            graph.addConnection(new NodusConnection(a.outputs[0], b2.inputs[0]))
+            graph.addConnection(new NodusConnection(b2.outputs[0], b3.inputs[0]))
+            graph.addConnection(new NodusConnection(b3.outputs[0], c.inputs[1]))
+
+            a.outputs[0].value = 10
+            await flush()
+
+            expect(c.calls).toEqual([[10, 10]])
+        })
+
+        it('batches multiple simultaneous root triggers so each affected node computes once', async () => {
+            const outA = new NodusPort('number', 'white', false, 0)
+            const outB = new NodusPort('number', 'white', false, 0)
+            const srcA = makeNode('srcA', [], [outA])
+            const srcB = makeNode('srcB', [], [outB])
+            const tgtA = new RecordingNode('tgtA', [new NodusPort('number')], [])
+            const tgtB = new RecordingNode('tgtB', [new NodusPort('number')], [])
+            graph.addNode(srcA)
+            graph.addNode(srcB)
+            graph.addNode(tgtA)
+            graph.addNode(tgtB)
+            graph.addConnection(new NodusConnection(outA, tgtA.inputs[0]))
+            graph.addConnection(new NodusConnection(outB, tgtB.inputs[0]))
+
+            outA.value = 1
+            outB.value = 2
+            await flush()
+
+            expect(tgtA.calls).toEqual([[1]])
+            expect(tgtB.calls).toEqual([[2]])
+        })
+
+        it('evaluate() still computes synchronously in topological order', () => {
+            const output = new NodusPort('number', 'white', false, 7)
+            const src = makeNode('src', [], [output])
+            const tgt = new RecordingNode('tgt', [new NodusPort('number')], [])
+            graph.addNode(src)
+            graph.addNode(tgt)
+            graph.addConnection(new NodusConnection(output, tgt.inputs[0]))
+
+            tgt.calls = []
+            graph.evaluate()
+
+            expect(tgt.calls).toEqual([[7]])
+        })
+
+        it('does not throw if a connection is removed while its target node is pending in the dirty set', async () => {
+            const output = new NodusPort('number')
+            const input = new NodusPort('number')
+            const src = makeNode('src', [], [output])
+            const tgt = new RecordingNode('tgt', [input], [])
+            graph.addNode(src)
+            graph.addNode(tgt)
+            const conn = new NodusConnection(output, input)
+            graph.addConnection(conn)
+
+            ;(graph as any).markDirty(tgt.id)
+            expect(() => graph.removeConnection(conn.id)).not.toThrow()
+
+            await expect(flush()).resolves.toBeUndefined()
+        })
+
+        it('does not throw if a node is removed while it is pending in the dirty set', async () => {
+            const output = new NodusPort('number')
+            const input = new NodusPort('number')
+            const src = makeNode('src', [], [output])
+            const tgt = new RecordingNode('tgt', [input], [])
+            graph.addNode(src)
+            graph.addNode(tgt)
+            graph.addConnection(new NodusConnection(output, input))
+
+            ;(graph as any).markDirty(tgt.id)
+            expect(() => graph.removeNode(tgt.id)).not.toThrow()
+
+            await expect(flush()).resolves.toBeUndefined()
         })
     })
 

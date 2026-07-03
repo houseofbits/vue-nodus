@@ -144,4 +144,34 @@ describe('View.deleteNode / View.deleteConnection', () => {
         expect(graph.nodes.has(target.id)).toBe(true)
         expect(view.selection.getSelectedConnections()).toEqual([])
     })
+
+    it('deleteSelected only removes the shift-clicked connection, not a previously selected node', () => {
+        const output1 = new NodusPort('number')
+        const output2 = new NodusPort('number')
+        const hub = new NodusBaseNode('hub', [], [output1, output2])
+        graph.addNode(hub)
+
+        const input1 = new NodusPort('number')
+        const sink1 = new NodusBaseNode('sink1', [input1], [])
+        graph.addNode(sink1)
+
+        const input2 = new NodusPort('number')
+        const sink2 = new NodusBaseNode('sink2', [input2], [])
+        graph.addNode(sink2)
+
+        const hubConnection1 = new NodusConnection(output1, input1)
+        const hubConnection2 = new NodusConnection(output2, input2)
+        graph.addConnection(hubConnection1)
+        graph.addConnection(hubConnection2)
+
+        view.selection.selectNode(hub, false)
+        view.selection.selectConnection(hubConnection1, true)
+
+        view.deleteSelected()
+
+        expect(graph.connections.has(hubConnection1.id)).toBe(false)
+        expect(graph.connections.has(hubConnection2.id)).toBe(true)
+        expect(graph.nodes.has(hub.id)).toBe(true)
+        expect(graph.nodes.has(sink2.id)).toBe(true)
+    })
 })

@@ -20,6 +20,7 @@ export default class SelectionController {
             }
             // If node already selected, keep the group (allows dragging multi-select)
         } else {
+            this.selectedConnections.value = []
             if (this.isSelected(node)) {
                 this.selectedNodes.value = this.selectedNodes.value.filter(n => n.node.id !== node.id)
             } else {
@@ -33,6 +34,7 @@ export default class SelectionController {
             this.selectedNodes.value = []
             this.selectedConnections.value = [connection]
         } else {
+            this.selectedNodes.value = []
             if (this.isConnectionSelected(connection)) {
                 this.selectedConnections.value = this.selectedConnections.value.filter(c => c.id !== connection.id)
             } else {

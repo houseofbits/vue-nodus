@@ -60,7 +60,7 @@ const items = Object.keys(registry).map((key) => ({
   value: key,
 }));
 
-function createManually(nodeClass: string) {
+function createNodeManually(nodeClass: string) {
     const NodeClass = registry[nodeClass]
     if (!NodeClass) throw new Error(`Unknown node class: ${nodeClass}`)
 
@@ -79,16 +79,12 @@ function createNode(_componentId: string, data: any): NodusBaseNode {
     return new NodeClass()
 }
 
-function populateDampedSineWave(board: NodusBoard): void {
-    board.serializer.deserialize(dampedSineWaveGraph, createNode)
-    board.graph.evaluate()
-}
-
-populateDampedSineWave(board);
+board.serializer.deserialize(dampedSineWaveGraph, createNode)
+board.graph.evaluate()
 
 </script>
 
 <template>
   <VGraph :board="board" />
-  <VNodeSelector :items="items" class="absolute top-2 left-2" @select="(item) => createManually(item.value)" />
+  <VNodeSelector :items="items" class="absolute top-2 left-2" @select="(item) => createNodeManually(item.value)" />
 </template>

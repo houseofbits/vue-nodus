@@ -7,8 +7,20 @@ export default class PortRegistry {
     portPositions: Map<string, Vector2> = reactive(new Map())
     viewport: Viewport
 
+    private updateScheduled = false
+
     constructor(viewport: Viewport) {
         this.viewport = viewport
+    }
+
+    /** Coalesce updateAll() calls to run once per animation frame, after Vue has flushed pan/drag DOM patches. */
+    scheduleUpdateAll() {
+        if (this.updateScheduled) return
+        this.updateScheduled = true
+        requestAnimationFrame(() => {
+            this.updateScheduled = false
+            this.updateAll()
+        })
     }
 
     register(portId: string, element: HTMLElement) {

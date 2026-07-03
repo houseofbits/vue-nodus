@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { VNodeRow } from '@houseofbits/vue-nodus'
 import Plotter2DNode from '../models/Plotter2DNode'
 
@@ -9,6 +9,12 @@ const props = defineProps({
         required: true,
     },
 })
+
+onMounted(() => props.node.run())
+
+function onSampleCountChange() {
+    if (!props.node.state.isRunning) props.node.run()
+}
 
 const PLOT_SIZE = 100
 
@@ -54,37 +60,30 @@ const baselineY = computed(() => {
                             class="w-16 px-1 py-0.5 text-xs border border-gray-300 rounded bg-white text-gray-900 outline-none disabled:bg-gray-100 disabled:text-gray-500"
                             v-model.number="props.node.state.sampleCount"
                             :disabled="props.node.state.isRunning"
+                            @change="onSampleCountChange"
                         />
                     </label>
                     <svg
                         viewBox="0 0 100 100"
                         preserveAspectRatio="none"
-                        class="w-full h-72 bg-gray-900 rounded"
+                        class="w-full h-72 rounded"
                     >
                         <line x1="0" :y1="baselineY" x2="100" :y2="baselineY" stroke="#4b5563" stroke-width="0.5" vector-effect="non-scaling-stroke" />
                         <polyline
                             :points="polylinePoints"
                             fill="none"
-                            stroke="#4fc3f7"
+                            stroke="#4f6ff7"
                             stroke-width="1.5"
                             vector-effect="non-scaling-stroke"
                         />
-                        <circle
-                            v-for="(p, i) in plotPoints"
-                            :key="i"
-                            :cx="p.x"
-                            :cy="p.y"
-                            r="1.2"
-                            fill="#4fc3f7"
-                        />
                     </svg>
                     <button
+                        v-if="props.node.state.isRunning"
                         type="button"
-                        class="px-3 py-1 text-xs rounded bg-blue-600 text-white disabled:opacity-50"
-                        :disabled="props.node.state.isRunning"
-                        @click="props.node.run()"
+                        class="px-3 py-1 text-xs rounded text-white bg-red-600"
+                        @click="props.node.stop()"
                     >
-                        {{ props.node.state.isRunning ? 'Plotting…' : 'Run' }}
+                        Stop
                     </button>
                 </div>
                 <div>x</div>

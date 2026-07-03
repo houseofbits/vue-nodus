@@ -1,7 +1,7 @@
 import NodusConnection from './Connection'
 import NodusBaseNode from './BaseNode'
 import NodusPort, { NodusPortType } from './Port'
-import { reactive, shallowRef, watch, type WatchStopHandle } from 'vue';
+import { reactive, shallowRef, watch, nextTick, type WatchStopHandle } from 'vue';
 
 export default class NodusGraph {
     nodes: Map<string, NodusBaseNode> = reactive(new Map())
@@ -13,6 +13,8 @@ export default class NodusGraph {
     private portToNode: Map<string, NodusBaseNode> = new Map()
     private connectionWatchers: Map<string, WatchStopHandle> = new Map()
     private computingNodes: Set<string> = new Set()
+    private dirtyNodes: Set<string> = new Set()
+    private flushScheduled: boolean = false
 
     constructor() { }
 
@@ -40,6 +42,7 @@ export default class NodusGraph {
             this.portToNode.delete(port.id)
         }
         this.nodes.delete(id)
+        this.dirtyNodes.delete(id)
     }
 
     /**
@@ -62,14 +65,10 @@ export default class NodusGraph {
         const stop = watch(
             () => sourcePort.value,
             (newVal) => {
+                const alreadySynced = targetPort.value === newVal
                 targetPort.value = newVal
-                if (!this.computingNodes.has(targetNode.id)) {
-                    this.computingNodes.add(targetNode.id)
-                    try {
-                        targetNode.compute()
-                    } finally {
-                        this.computingNodes.delete(targetNode.id)
-                    }
+                if (!alreadySynced) {
+                    this.markDirty(targetNode.id)
                 }
             }
         )
@@ -103,8 +102,68 @@ export default class NodusGraph {
         for (const nodeId of order) {
             const node = this.nodes.get(nodeId)
             if (!node) continue
-            this.syncInputs(node)
+            this.computeNode(node)
+        }
+    }
+
+    /** Sync a node's inputs and call `compute()`, guarded against re-entrancy. */
+    private computeNode(node: NodusBaseNode) {
+        this.syncInputs(node)
+        if (this.computingNodes.has(node.id)) return
+        this.computingNodes.add(node.id)
+        try {
             node.compute()
+        } finally {
+            this.computingNodes.delete(node.id)
+        }
+    }
+
+    /**
+     * Mark a node and its entire downstream reachability closure as dirty, then schedule a
+     * batched flush. Marking the whole closure (not just the immediate target) guarantees that
+     * when the flush reaches a node whose inputs converge from paths of different length off a
+     * shared changing ancestor, every ancestor in the closure has already been computed earlier
+     * in the same flush — so it never sees a mix of stale and fresh sibling inputs.
+     */
+    private markDirty(startNodeId: string) {
+        const stack = [startNodeId]
+        while (stack.length > 0) {
+            const id = stack.pop()!
+            if (this.dirtyNodes.has(id)) continue
+            this.dirtyNodes.add(id)
+            const node = this.nodes.get(id)
+            if (!node) continue
+            for (const output of node.outputs) {
+                for (const conn of this.connections.values()) {
+                    if (conn.sourcePortId !== output.id) continue
+                    const downstream = this.portToNode.get(conn.targetPortId)
+                    if (downstream) stack.push(downstream.id)
+                }
+            }
+        }
+        this.scheduleFlush()
+    }
+
+    private scheduleFlush() {
+        if (this.flushScheduled) return
+        this.flushScheduled = true
+        nextTick(() => this.flushDirty())
+    }
+
+    /** Compute every dirty node once, in topological order. */
+    private flushDirty() {
+        this.flushScheduled = false
+        if (this.dirtyNodes.size === 0) return
+
+        const dirty = this.dirtyNodes
+        this.dirtyNodes = new Set()
+
+        const order = this.topologicalSort()
+        for (const nodeId of order) {
+            if (!dirty.has(nodeId)) continue
+            const node = this.nodes.get(nodeId)
+            if (!node) continue
+            this.computeNode(node)
         }
     }
 

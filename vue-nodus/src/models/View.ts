@@ -115,7 +115,7 @@ export default class View {
 
         this.viewport.applyPan(event.clientX, event.clientY)
 
-        this.portRegistry.updateAll()
+        this.portRegistry.scheduleUpdateAll()
     }
 
     private pinchDistance(): number {
