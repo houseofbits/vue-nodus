@@ -120,6 +120,7 @@ export default class NodusBaseNode {
             ...this.internalState,
             id: this.id,
             componentId: this.componentId,
+            nodeClass: this.constructor.name,
             ports: this.serializePorts()
         }
     }

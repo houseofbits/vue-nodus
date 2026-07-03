@@ -82,9 +82,15 @@ function createNode(_componentId: string, data: any): NodusBaseNode {
 board.serializer.deserialize(dampedSineWaveGraph, createNode)
 board.graph.evaluate()
 
+function serialize() {
+  const result = board.serializer.serialize()
+  console.log(result)
+}
+
 </script>
 
 <template>
   <VGraph :board="board" />
   <VNodeSelector :items="items" class="absolute top-2 left-2" @select="(item) => createNodeManually(item.value)" />
+  <button class="absolute top-2 right-2 z-10" @click="serialize">Serialize</button>
 </template>
