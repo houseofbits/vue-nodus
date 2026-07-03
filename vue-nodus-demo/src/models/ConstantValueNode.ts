@@ -30,4 +30,12 @@ export default class ConstantValueNode extends NodusBaseNode {
     compute(): void {
         this.outputs[0].value = this.state.value
     }
+
+    serialize() {
+        return { value: this.state.value }
+    }
+
+    deserialize(data: any) {
+        if (data.value !== undefined) this.state.value = data.value
+    }
 }

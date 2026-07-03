@@ -2,6 +2,17 @@
   "name": "@houseofbits/vue-nodus",
   "version": "0.2.5",
   "description": "A Vue 3 node editor and blueprint library.",
+  "keywords": [
+    "vue",
+    "vue3",
+    "node-editor",
+    "node-graph",
+    "visual-scripting",
+    "blueprint",
+    "flow-editor",
+    "graph-editor",
+    "vue-component"
+  ],
   "type": "module",
   "license": "MIT",
   "files": [

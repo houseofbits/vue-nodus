@@ -1,0 +1,321 @@
+{
+  "nodes": {
+    "caption": {
+      "id": "caption",
+      "nodeClass": "InfoTextNode",
+      "componentId": "InfoTextNode",
+      "x": 2040,
+      "y": 40,
+      "zIndex": 0,
+      "width": 450,
+      "height": null,
+      "title": "Damped Sine Wave",
+      "text": "y = sin(freq\u00b7x) / (1 + decay\u00b7x)\n\nEdit Frequency/Decay below, then click \"Run\" on the plotter to sweep x from 0 to 1.",
+      "ports": {}
+    },
+    "frequency": {
+      "id": "frequency",
+      "nodeClass": "ConstantValueNode",
+      "componentId": "ConstantValue",
+      "x": 2040,
+      "y": 260,
+      "zIndex": 0,
+      "width": 200,
+      "height": null,
+      "title": "Frequency",
+      "value": 24,
+      "ports": {
+        "frequency-out": {
+          "id": "frequency-out",
+          "type": "number",
+          "ioType": 1,
+          "color": "red",
+          "value": 24
+        }
+      }
+    },
+    "decay": {
+      "id": "decay",
+      "nodeClass": "ConstantValueNode",
+      "componentId": "ConstantValue",
+      "x": 2040,
+      "y": 450,
+      "zIndex": 0,
+      "width": 200,
+      "height": null,
+      "title": "Decay",
+      "value": 2,
+      "ports": {
+        "decay-out": {
+          "id": "decay-out",
+          "type": "number",
+          "ioType": 1,
+          "color": "red",
+          "value": 2
+        }
+      }
+    },
+    "one": {
+      "id": "one",
+      "nodeClass": "ConstantValueNode",
+      "componentId": "ConstantValue",
+      "x": 2040,
+      "y": 640,
+      "zIndex": 0,
+      "width": 200,
+      "height": null,
+      "title": "1",
+      "value": 1,
+      "ports": {
+        "one-out": {
+          "id": "one-out",
+          "type": "number",
+          "ioType": 1,
+          "color": "red",
+          "value": 1
+        }
+      }
+    },
+    "freqMul": {
+      "id": "freqMul",
+      "nodeClass": "MultiplyValueNode",
+      "componentId": "MathNode",
+      "x": 2340,
+      "y": 80,
+      "zIndex": 0,
+      "width": 130,
+      "height": null,
+      "title": "freq \u00b7 x",
+      "ports": {
+        "freqMul-in0": {
+          "id": "freqMul-in0",
+          "type": "number",
+          "ioType": 0,
+          "color": "red"
+        },
+        "freqMul-in1": {
+          "id": "freqMul-in1",
+          "type": "number",
+          "ioType": 0,
+          "color": "red"
+        },
+        "freqMul-out": {
+          "id": "freqMul-out",
+          "type": "number",
+          "ioType": 1,
+          "color": "red"
+        }
+      }
+    },
+    "sin": {
+      "id": "sin",
+      "nodeClass": "SinValueNode",
+      "componentId": "UnaryMathNode",
+      "x": 2570,
+      "y": 80,
+      "zIndex": 0,
+      "width": 130,
+      "height": null,
+      "title": "Sin",
+      "ports": {
+        "sin-in": {
+          "id": "sin-in",
+          "type": "number",
+          "ioType": 0,
+          "color": "red"
+        },
+        "sin-out": {
+          "id": "sin-out",
+          "type": "number",
+          "ioType": 1,
+          "color": "red"
+        }
+      }
+    },
+    "decayMul": {
+      "id": "decayMul",
+      "nodeClass": "MultiplyValueNode",
+      "componentId": "MathNode",
+      "x": 2340,
+      "y": 340,
+      "zIndex": 0,
+      "width": 130,
+      "height": null,
+      "title": "decay \u00b7 x",
+      "ports": {
+        "decayMul-in0": {
+          "id": "decayMul-in0",
+          "type": "number",
+          "ioType": 0,
+          "color": "red"
+        },
+        "decayMul-in1": {
+          "id": "decayMul-in1",
+          "type": "number",
+          "ioType": 0,
+          "color": "red"
+        },
+        "decayMul-out": {
+          "id": "decayMul-out",
+          "type": "number",
+          "ioType": 1,
+          "color": "red"
+        }
+      }
+    },
+    "denom": {
+      "id": "denom",
+      "nodeClass": "AddValueNode",
+      "componentId": "MathNode",
+      "x": 2570,
+      "y": 340,
+      "zIndex": 0,
+      "width": 130,
+      "height": null,
+      "title": "1 + decay \u00b7 x",
+      "ports": {
+        "denom-in0": {
+          "id": "denom-in0",
+          "type": "number",
+          "ioType": 0,
+          "color": "red"
+        },
+        "denom-in1": {
+          "id": "denom-in1",
+          "type": "number",
+          "ioType": 0,
+          "color": "red"
+        },
+        "denom-out": {
+          "id": "denom-out",
+          "type": "number",
+          "ioType": 1,
+          "color": "red"
+        }
+      }
+    },
+    "divide": {
+      "id": "divide",
+      "nodeClass": "DivideValueNode",
+      "componentId": "MathNode",
+      "x": 2800,
+      "y": 210,
+      "zIndex": 0,
+      "width": 130,
+      "height": null,
+      "title": "Divide",
+      "ports": {
+        "divide-in0": {
+          "id": "divide-in0",
+          "type": "number",
+          "ioType": 0,
+          "color": "red"
+        },
+        "divide-in1": {
+          "id": "divide-in1",
+          "type": "number",
+          "ioType": 0,
+          "color": "red"
+        },
+        "divide-out": {
+          "id": "divide-out",
+          "type": "number",
+          "ioType": 1,
+          "color": "red"
+        }
+      }
+    },
+    "plotter": {
+      "id": "plotter",
+      "nodeClass": "Plotter2DNode",
+      "componentId": "Plotter2DNode",
+      "x": 3030,
+      "y": 140,
+      "zIndex": 0,
+      "width": 450,
+      "height": null,
+      "title": "Damped Sine Wave",
+      "ports": {
+        "plotter-in": {
+          "id": "plotter-in",
+          "type": "number",
+          "ioType": 0,
+          "color": "red"
+        },
+        "plotter-out": {
+          "id": "plotter-out",
+          "type": "number",
+          "ioType": 1,
+          "color": "red"
+        }
+      }
+    }
+  },
+  "connections": {
+    "c1": {
+      "id": "c1",
+      "sourcePortId": "plotter-out",
+      "targetPortId": "freqMul-in0",
+      "color": "red"
+    },
+    "c2": {
+      "id": "c2",
+      "sourcePortId": "frequency-out",
+      "targetPortId": "freqMul-in1",
+      "color": "red"
+    },
+    "c3": {
+      "id": "c3",
+      "sourcePortId": "freqMul-out",
+      "targetPortId": "sin-in",
+      "color": "red"
+    },
+    "c4": {
+      "id": "c4",
+      "sourcePortId": "sin-out",
+      "targetPortId": "divide-in0",
+      "color": "red"
+    },
+    "c5": {
+      "id": "c5",
+      "sourcePortId": "plotter-out",
+      "targetPortId": "decayMul-in0",
+      "color": "red"
+    },
+    "c6": {
+      "id": "c6",
+      "sourcePortId": "decay-out",
+      "targetPortId": "decayMul-in1",
+      "color": "red"
+    },
+    "c7": {
+      "id": "c7",
+      "sourcePortId": "decayMul-out",
+      "targetPortId": "denom-in0",
+      "color": "red"
+    },
+    "c8": {
+      "id": "c8",
+      "sourcePortId": "one-out",
+      "targetPortId": "denom-in1",
+      "color": "red"
+    },
+    "c9": {
+      "id": "c9",
+      "sourcePortId": "denom-out",
+      "targetPortId": "divide-in1",
+      "color": "red"
+    },
+    "c10": {
+      "id": "c10",
+      "sourcePortId": "divide-out",
+      "targetPortId": "plotter-in",
+      "color": "red"
+    }
+  },
+  "board": {
+    "panX": 0,
+    "panY": 0,
+    "zoom": 1
+  }
+}

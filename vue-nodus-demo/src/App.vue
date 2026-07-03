@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NodusBoard, VGraph } from '@houseofbits/vue-nodus'
+import { NodusBoard, VGraph, NodusBaseNode } from '@houseofbits/vue-nodus'
 import VConstantValueNode from './components/VConstantValueNode.vue';
 import ConstantValueNode from './models/ConstantValueNode.ts';
 import VOutputNode from './components/VOutputNode.vue';
@@ -15,7 +15,7 @@ import ClampValueNode from './models/ClampValueNode.ts';
 import VConditionNode from './components/VConditionNode.vue';
 import ConditionValueNode from './models/ConditionValueNode.ts';
 import VUnaryMathNode from './components/VUnaryMathNode.vue';
-import VPlotter2D from './components/VPlotter2D.vue';
+import VPlotter2DNode from './components/VPlotter2DNode.vue';
 import SinValueNode from './models/SinValueNode.ts';
 import CosValueNode from './models/CosValueNode.ts';
 import SquareValueNode from './models/SquareValueNode.ts';
@@ -24,7 +24,7 @@ import Plotter2DNode from './models/Plotter2DNode.ts';
 import InfoTextNode from './models/InfoTextNode.ts';
 import VNodeSelector from './components/VNodeSelector.vue';
 import VInfoTextNode from './components/VInfoTextNode.vue';
-import { populateRpgDamageCalculator } from './demos/rpgDamageCalculator.ts';
+import dampedSineWaveGraph from './demos/dampedSineWave.json'
 
 const board = new NodusBoard();
 
@@ -34,10 +34,8 @@ board.registerComponent("MathNode", VMathNode);
 board.registerComponent("ClampNode", VClampNode);
 board.registerComponent("ConditionNode", VConditionNode);
 board.registerComponent("UnaryMathNode", VUnaryMathNode);
-board.registerComponent("Plotter2DNode", VPlotter2D);
+board.registerComponent("Plotter2DNode", VPlotter2DNode);
 board.registerComponent("InfoTextNode", VInfoTextNode);
-
-populateRpgDamageCalculator(board);
 
 const registry: Record<string, new () => any> = {
   ConstantValueNode,
@@ -62,11 +60,11 @@ const items = Object.keys(registry).map((key) => ({
   value: key,
 }));
 
-function create(name: string) {
-  const Ctor = registry[name];
-  if (!Ctor) throw new Error(`Unknown class: ${name}`);
+function createManually(nodeClass: string) {
+    const NodeClass = registry[nodeClass]
+    if (!NodeClass) throw new Error(`Unknown node class: ${nodeClass}`)
 
-  const node = new Ctor()
+  const node = new NodeClass()
 
   const center = board.view.getBoardCenterPosition()
   node.setPosition(center.x, center.y)
@@ -74,14 +72,23 @@ function create(name: string) {
   board.graph.addNode(node)
 }
 
+function createNode(_componentId: string, data: any): NodusBaseNode {
+    const NodeClass = registry[data.nodeClass]
+    if (!NodeClass) throw new Error(`Unknown node class: ${data.nodeClass}`)
+
+    return new NodeClass()
+}
+
+function populateDampedSineWave(board: NodusBoard): void {
+    board.serializer.deserialize(dampedSineWaveGraph, createNode)
+    board.graph.evaluate()
+}
+
+populateDampedSineWave(board);
+
 </script>
 
 <template>
-  <VGraph :board="board">
-    <div class="absolute text-white" style="left: 960px; top: 780px; width: 400px;">
-      <p class="text-lg font-semibold">RPG Damage Calculator</p>
-      <p class="text-base">Edit the constants on the left and watch the damage recompute live. A critical hit triggers when Attack Roll &ge; Defense Threshold.</p>
-    </div>
-  </VGraph>
-  <VNodeSelector :items="items" class="absolute top-2 left-2" @select="(item) => create(item.value)" />
+  <VGraph :board="board" />
+  <VNodeSelector :items="items" class="absolute top-2 left-2" @select="(item) => createManually(item.value)" />
 </template>
