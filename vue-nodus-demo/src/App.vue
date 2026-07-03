@@ -15,11 +15,15 @@ import ClampValueNode from './models/ClampValueNode.ts';
 import VConditionNode from './components/VConditionNode.vue';
 import ConditionValueNode from './models/ConditionValueNode.ts';
 import VUnaryMathNode from './components/VUnaryMathNode.vue';
+import VPlotter2D from './components/VPlotter2D.vue';
 import SinValueNode from './models/SinValueNode.ts';
 import CosValueNode from './models/CosValueNode.ts';
 import SquareValueNode from './models/SquareValueNode.ts';
 import SqrtValueNode from './models/SqrtValueNode.ts';
+import Plotter2DNode from './models/Plotter2DNode.ts';
+import InfoTextNode from './models/InfoTextNode.ts';
 import VNodeSelector from './components/VNodeSelector.vue';
+import VInfoTextNode from './components/VInfoTextNode.vue';
 import { populateRpgDamageCalculator } from './demos/rpgDamageCalculator.ts';
 
 const board = new NodusBoard();
@@ -30,6 +34,8 @@ board.registerComponent("MathNode", VMathNode);
 board.registerComponent("ClampNode", VClampNode);
 board.registerComponent("ConditionNode", VConditionNode);
 board.registerComponent("UnaryMathNode", VUnaryMathNode);
+board.registerComponent("Plotter2DNode", VPlotter2D);
+board.registerComponent("InfoTextNode", VInfoTextNode);
 
 populateRpgDamageCalculator(board);
 
@@ -47,6 +53,8 @@ const registry: Record<string, new () => any> = {
   CosValueNode,
   SquareValueNode,
   SqrtValueNode,
+  Plotter2DNode,
+  InfoTextNode,
 };
 
 const items = Object.keys(registry).map((key) => ({
