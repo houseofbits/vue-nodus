@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "npm run build --workspace @houseofbits/vue-nodus",
+    "dev": "npm run dev --workspace @houseofbits/vue-nodus",
+    "demo": "npm run demo --workspace @houseofbits/vue-nodus",
+    "test": "npm run test --workspace @houseofbits/vue-nodus",
+    "test:watch": "npm run test:watch --workspace @houseofbits/vue-nodus",
+    "tsc": "npm run tsc --workspace @houseofbits/vue-nodus",
+    "demo:dev": "npm run dev --workspace vue-nodus-demo",
+    "demo:build": "npm run build --workspace vue-nodus-demo",
+    "demo:preview": "npm run preview --workspace vue-nodus-demo",
+    "version": "npm version $npm_new_version --workspace vue-nodus --no-git-tag-version && git add vue-nodus/package.json"
+  },
+  "workspaces": [
+    "vue-nodus",
+    "vue-nodus-demo"
+  ],
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "1.32.0"
+  },
+  "version": "0.2.7"
+}
