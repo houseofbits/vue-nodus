@@ -3,10 +3,10 @@
         <slot />
 
         <div class="input-port" v-if="props.inputPort">
-            <VPort :port="props.inputPort"/>
+            <VPort :port="props.inputPort" :key="props.inputPort.id" />
         </div>
         <div class="output-port" v-if="props.outputPort">
-            <VPort :port="props.outputPort"/>
+            <VPort :port="props.outputPort" :key="props.outputPort.id"/>
         </div>
     </div>
 </template>

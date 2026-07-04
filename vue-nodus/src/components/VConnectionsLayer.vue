@@ -1,54 +1,29 @@
 <template>
     <svg class="connections">
         <g :transform="cameraStyle">
-            <template
-            v-for="[id, connection] in board.graph.connections"
-            :key="id"
-            >
-            <!-- Invisible hit area -->
-            <path
-                :d="getSVGPath(connection)"
-                fill="none"
-                stroke="transparent"
-                stroke-width="16"
-                style="cursor:pointer"
-                @click.stop="selectConnection(connection, $event)"
-            />
+            <template v-for="[id, connection] in board.graph.connections" :key="id">
+                <!-- Invisible hit area -->
+                <path :d="getSVGPath(connection)" fill="none" stroke="transparent" stroke-width="16"
+                    style="cursor:pointer" @click.stop="selectConnection(connection, $event)" />
 
-            <!-- Selection outline -->
-            <path
-                v-if="board.view.selection.isConnectionSelected(connection)"
-                :d="getSVGPath(connection)"
-                fill="none"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                :style="{ stroke: 'var(--nodus-connection-selection-color, white)', strokeWidth: 'var(--nodus-connection-selection-width, 12)' }"
-            />
+                <!-- Selection outline -->
+                <path v-if="board.view.selection.isConnectionSelected(connection)" :d="getSVGPath(connection)"
+                    fill="none" stroke-linecap="round" stroke-linejoin="round"
+                    :style="{ stroke: 'var(--nodus-connection-selection-color, white)', strokeWidth: 'var(--nodus-connection-selection-width, 12)' }" />
 
-            <!-- Visible connection -->
-            <path
-                :d="getSVGPath(connection)"
-                :stroke="connection.color"
-                fill="none"
-                :style="{ strokeWidth: 'var(--nodus-connection-width, 4)' }"
-                @click.stop="selectConnection(connection, $event)"
-            />
+                <!-- Visible connection -->
+                <path :d="getSVGPath(connection)" :stroke="connection.color" fill="none"
+                    :style="{ strokeWidth: 'var(--nodus-connection-width, 4)' }"
+                    @click.stop="selectConnection(connection, $event)" />
 
-            <!-- Touch delete marker -->
-            <g
-                v-if="board.view.selection.isConnectionSelected(connection)"
-                class="nodus-connection-delete-btn"
-                :transform="deleteMarkerTransform(connection)"
-                @click.stop="board?.view.deleteConnection(connection)"
-            >
-                <circle r="10" :fill="'var(--nodus-connection-delete-bg, rgba(0, 0, 0, 0.55))'" />
-                <text
-                    text-anchor="middle"
-                    dominant-baseline="central"
-                    :fill="'var(--nodus-connection-delete-color, white)'"
-                    font-size="14"
-                >&times;</text>
-            </g>
+                <!-- Touch delete marker -->
+                <g v-if="board.view.selection.isConnectionSelected(connection)" class="nodus-connection-delete-btn"
+                    :transform="deleteMarkerTransform(connection)"
+                    @click.stop="board?.view.deleteConnection(connection)">
+                    <circle r="10" :fill="'var(--nodus-connection-delete-bg, rgba(0, 0, 0, 0.55))'" />
+                    <text text-anchor="middle" dominant-baseline="central"
+                        :fill="'var(--nodus-connection-delete-color, white)'" font-size="14">&times;</text>
+                </g>
             </template>
         </g>
     </svg>
@@ -71,7 +46,7 @@ if (!board) throw new Error('VConnectionsLayer must be used inside VGraph')
 function getSVGPath(connection: NodusConnection): string | undefined {
     try {
         return board?.view.getSVGPath(connection)
-    } catch {
+    } catch (e) {
         return undefined
     }
 }
@@ -119,7 +94,8 @@ const cameraStyle = computed(() => {
     cursor: pointer;
 }
 
-@media (hover: none), (pointer: coarse) {
+@media (hover: none),
+(pointer: coarse) {
     .nodus-connection-delete-btn {
         display: block;
     }

@@ -21,6 +21,7 @@ const portEl = ref<HTMLElement>()
 let observer: ResizeObserver | null = null
 
 onMounted(() => {
+    // console.log("mount port", props.port.id);
     if (portEl.value === undefined) {
         return
     }
@@ -36,6 +37,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    // console.log("unmounting port", props.port.id);
     observer?.disconnect()
 
     board.view.portRegistry.unregister(props.port.id);

@@ -3,30 +3,22 @@
         <VConnectionsLayer />
 
         <div class="transform-wrapper" :style="transformStyle">
-            <template v-for="node in props.board.graph.nodes">
-                <template v-if="node[1].isThinComponent">
-                    <VBaseNode :key="node[0]" :node="node[1]" :is-selected="isSelected(node[1])"
-                        class="enable-pointer-events" :style="getNodeStyle(node[1])"
-                        @pointerdown="(e: PointerEvent) => onNodeClick(e, node[1])">
+            <template v-for="([id, node]) of props.board.graph.nodes" :key="node.id">
+                <template v-if="node.isThinComponent">
+                    <VBaseNode :key="'base-'+node.id" :node="node" :is-selected="isSelected(node)"
+                        class="enable-pointer-events" :style="getNodeStyle(node)"
+                        @pointerdown="(e: PointerEvent) => onNodeClick(e, node)">
                         <template #content>
-                            <component :is="getComponent(node[1])" :node="node[1]" />
+                            <component :is="getComponent(node)" :node="node" :key="'comp-'+node.id" />
                         </template>
                     </VBaseNode>
                 </template>
 
-                <component v-else :is="getComponent(node[1])" :key="node[0]" :node="node[1]"
-                    :is-selected="isSelected(node[1])" :style="getNodeStyle(node[1])" class="enable-pointer-events"
-                    @pointerdown="(e: PointerEvent) => onNodeClick(e, node[1])" />
+                <component v-else :is="getComponent(node)" :key="id" :node="node"
+                    :is-selected="isSelected(node)" :style="getNodeStyle(node)" class="enable-pointer-events"
+                    @pointerdown="(e: PointerEvent) => onNodeClick(e, node)" />
             </template>
 
-            <!--
-              Content here pans/zooms with the graph because it lives inside
-              .transform-wrapper — position it with absolute left/top in board-space
-              pixels, matching node coordinates. Note: .transform-wrapper has
-              pointer-events:none, and it does not leak VGraph's scoped
-              .enable-pointer-events class to slotted content, so interactive slot
-              content must set pointer-events:auto itself.
-            -->
             <slot />
         </div>
     </div>
