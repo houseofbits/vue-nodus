@@ -84,6 +84,7 @@ board.graph.evaluate()
 
 function serialize() {
   const result = board.serializer.serialize()
+  
   console.log(result)
 }
 
