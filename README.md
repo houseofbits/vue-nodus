@@ -4,6 +4,7 @@ Build visual node editors for Vue 3 — drag-and-drop node graphs like Blender's
 
 [![npm](https://img.shields.io/npm/v/@houseofbits/vue-nodus)](https://www.npmjs.com/package/@houseofbits/vue-nodus)
 [![license](https://img.shields.io/npm/l/@houseofbits/vue-nodus)](LICENSE)
+[![feature requests](https://img.shields.io/badge/feature%20requests-open-blue)](https://github.com/houseofbits/vue-nodus/issues/new?template=feature_request.md)
 
 - **Nodes your way** — extend `NodusBaseNode`, drop in a Vue component; the library handles drag, connect, and delete
 - **Live data flow** — reactive ports propagate values through the graph automatically via `compute()`

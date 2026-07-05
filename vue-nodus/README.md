@@ -2,6 +2,11 @@
 
 [![npm](https://img.shields.io/npm/v/@houseofbits/vue-nodus)](https://www.npmjs.com/package/@houseofbits/vue-nodus)
 [![license](https://img.shields.io/npm/l/@houseofbits/vue-nodus)](LICENSE)
+[![feature requests](https://img.shields.io/badge/feature%20requests-open-blue)](https://github.com/houseofbits/vue-nodus/issues/new?template=feature_request.md)
+
+## Demo
+
+**[Live demo →](https://houseofbits.github.io/vue-nodus/)**
 
 ## Installation
 
@@ -397,6 +402,13 @@ Renders a single port circle. Used internally by `VBaseNode` and `VNodeRow`. Can
 |---|---|---|---|
 | `port` | `NodusPort` | yes | The port to render |
 
+## Feature requests
+
+Got ideas or improvements? Open a feature request here:
+
+👉 https://github.com/houseofbits/vue-nodus/issues/new?template=feature_request.md
+
 ## License
 
 MIT
+
