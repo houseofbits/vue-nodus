@@ -106,6 +106,17 @@ export default class NodusGraph {
         }
     }
 
+    /** Return the nodes directly connected downstream of the given output port (immediate neighbors only). */
+    getConnectedNodes(port: NodusPort): NodusBaseNode[] {
+        const nodes: NodusBaseNode[] = []
+        for (const conn of this.connections.values()) {
+            if (conn.sourcePortId !== port.id) continue
+            const node = this.portToNode.get(conn.targetPortId)
+            if (node) nodes.push(node)
+        }
+        return nodes
+    }
+
     /** Sync a node's inputs and call `compute()`, guarded against re-entrancy. */
     private computeNode(node: NodusBaseNode) {
         this.syncInputs(node)
