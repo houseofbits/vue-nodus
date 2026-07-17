@@ -117,6 +117,7 @@ function onDelete() {
     border-bottom-right-radius: var(--nodus-node-border-radius, 8px);
     min-width: 30px;
     min-height: 30px;
+    user-select: none;
 }
 
 .inputs {
