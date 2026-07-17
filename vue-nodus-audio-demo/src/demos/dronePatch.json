@@ -1,0 +1,298 @@
+{
+    "nodes": {
+        "osc": {
+            "waveform": "sawtooth",
+            "frequency": 220,
+            "detune": 0,
+            "x": 60,
+            "y": 60,
+            "zIndex": 1,
+            "width": 240,
+            "height": null,
+            "title": "Oscillator",
+            "id": "osc",
+            "componentId": "Oscillator",
+            "nodeClass": "OscillatorSourceNode",
+            "ports": {
+                "osc-freqmod": {
+                    "id": "osc-freqmod",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#fbbf24"
+                },
+                "osc-out": {
+                    "id": "osc-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "osc2": {
+            "waveform": "triangle",
+            "frequency": 330,
+            "detune": 0,
+            "x": 60,
+            "y": 400,
+            "zIndex": 2,
+            "width": 240,
+            "height": null,
+            "title": "Oscillator 2",
+            "id": "osc2",
+            "componentId": "Oscillator",
+            "nodeClass": "OscillatorSourceNode",
+            "ports": {
+                "osc2-freqmod": {
+                    "id": "osc2-freqmod",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#fbbf24"
+                },
+                "osc2-out": {
+                    "id": "osc2-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "lfo": {
+            "waveform": "sine",
+            "rate": 0.5,
+            "depth": 400,
+            "x": 60,
+            "y": 760,
+            "zIndex": 3,
+            "width": 240,
+            "height": null,
+            "title": "LFO",
+            "id": "lfo",
+            "componentId": "Lfo",
+            "nodeClass": "LfoSourceNode",
+            "ports": {
+                "lfo-out": {
+                    "id": "lfo-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#fbbf24"
+                }
+            }
+        },
+        "mixer": {
+            "channels": [
+                { "level": 0.8, "pan": -0.3 },
+                { "level": 0.8, "pan": 0.3 },
+                { "level": 0.8, "pan": 0 },
+                { "level": 0.8, "pan": 0 }
+            ],
+            "x": 400,
+            "y": 200,
+            "zIndex": 4,
+            "width": 260,
+            "height": null,
+            "title": "Mixer",
+            "id": "mixer",
+            "componentId": "Mixer",
+            "nodeClass": "MixerControlNode",
+            "ports": {
+                "mixer-in1": {
+                    "id": "mixer-in1",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "mixer-in2": {
+                    "id": "mixer-in2",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "mixer-in3": {
+                    "id": "mixer-in3",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "mixer-in4": {
+                    "id": "mixer-in4",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "mixer-out": {
+                    "id": "mixer-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "filter": {
+            "type": "lowpass",
+            "frequency": 800,
+            "q": 8,
+            "x": 740,
+            "y": 160,
+            "zIndex": 5,
+            "width": 240,
+            "height": null,
+            "title": "Filter",
+            "id": "filter",
+            "componentId": "Filter",
+            "nodeClass": "BiquadFilterControlNode",
+            "ports": {
+                "filter-in": {
+                    "id": "filter-in",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "filter-freqmod": {
+                    "id": "filter-freqmod",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#fbbf24"
+                },
+                "filter-out": {
+                    "id": "filter-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "gain": {
+            "gain": 0.5,
+            "x": 1060,
+            "y": 160,
+            "zIndex": 6,
+            "width": 240,
+            "height": null,
+            "title": "Gain",
+            "id": "gain",
+            "componentId": "Gain",
+            "nodeClass": "GainControlNode",
+            "ports": {
+                "gain-in": {
+                    "id": "gain-in",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "gain-gainmod": {
+                    "id": "gain-gainmod",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#fbbf24"
+                },
+                "gain-out": {
+                    "id": "gain-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "analyser": {
+            "x": 1380,
+            "y": 160,
+            "zIndex": 7,
+            "width": 320,
+            "height": null,
+            "title": "Analyser",
+            "id": "analyser",
+            "componentId": "Analyser",
+            "nodeClass": "AnalyserDisplayNode",
+            "ports": {
+                "analyser-in": {
+                    "id": "analyser-in",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "analyser-out": {
+                    "id": "analyser-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "output": {
+            "volume": 0.8,
+            "x": 1760,
+            "y": 200,
+            "zIndex": 8,
+            "width": 240,
+            "height": null,
+            "title": "Output",
+            "id": "output",
+            "componentId": "Output",
+            "nodeClass": "AudioOutputNode",
+            "ports": {
+                "output-in": {
+                    "id": "output-in",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                }
+            }
+        }
+    },
+    "connections": {
+        "c1": {
+            "id": "c1",
+            "sourcePortId": "osc-out",
+            "targetPortId": "mixer-in1",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c2": {
+            "id": "c2",
+            "sourcePortId": "osc2-out",
+            "targetPortId": "mixer-in2",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c3": {
+            "id": "c3",
+            "sourcePortId": "mixer-out",
+            "targetPortId": "filter-in",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c4": {
+            "id": "c4",
+            "sourcePortId": "filter-out",
+            "targetPortId": "gain-in",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c5": {
+            "id": "c5",
+            "sourcePortId": "gain-out",
+            "targetPortId": "analyser-in",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c6": {
+            "id": "c6",
+            "sourcePortId": "analyser-out",
+            "targetPortId": "output-in",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c7": {
+            "id": "c7",
+            "sourcePortId": "lfo-out",
+            "targetPortId": "filter-freqmod",
+            "color": "#fbbf24",
+            "connectionType": "bezier"
+        }
+    },
+    "board": {
+        "panX": 20,
+        "panY": 20,
+        "zoom": 0.9
+    }
+}

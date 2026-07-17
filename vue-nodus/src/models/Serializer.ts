@@ -1,8 +1,8 @@
-import NodusConnection from "./Connection";
-import NodusGraph from "./Graph";
-import NodusPort from "./Port";
-import NodusBaseNode from "./BaseNode";
-import Viewport from "./Viewport";
+import NodusConnection from './Connection'
+import NodusGraph from './Graph'
+import NodusPort from './Port'
+import NodusBaseNode from './BaseNode'
+import Viewport from './Viewport'
 
 /**
  * Saves and restores the full graph state (nodes, connections, and viewport position).
@@ -29,7 +29,7 @@ export default class NodusSerializer {
      */
     serialize() {
         const nodes: Record<string, any> = {}
-        for(const [key, node] of this.graph.nodes) {
+        for (const [key, node] of this.graph.nodes) {
             nodes[key] = node.serializeInternal()
         }
 
@@ -40,7 +40,7 @@ export default class NodusSerializer {
                 panX: this.viewport.state.panX,
                 panY: this.viewport.state.panY,
                 zoom: this.viewport.state.zoom,
-            }
+            },
         }
     }
 
@@ -76,6 +76,7 @@ export default class NodusSerializer {
                 { id: connData.sourcePortId } as NodusPort,
                 { id: connData.targetPortId } as NodusPort,
                 connData.color,
+                connData.connectionType ?? 'bezier',
             )
             conn.id = connData.id
             this.graph.addConnection(conn)
@@ -98,12 +99,13 @@ export default class NodusSerializer {
     private serializeConnections() {
         const data: Record<string, any> = {}
 
-        for(const [id, conn] of this.graph.connections) {
+        for (const [id, conn] of this.graph.connections) {
             data[id] = {
                 id: conn.id,
                 sourcePortId: conn.sourcePortId,
                 targetPortId: conn.targetPortId,
                 color: conn.color,
+                connectionType: conn.connectionType,
             }
         }
 

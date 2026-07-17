@@ -23,6 +23,7 @@ import SqrtValueNode from './models/SqrtValueNode.ts';
 import Plotter2DNode from './models/Plotter2DNode.ts';
 import InfoTextNode from './models/InfoTextNode.ts';
 import VNodeSelector from './components/VNodeSelector.vue';
+import VHistoryToolbar from './components/VHistoryToolbar.vue';
 import VInfoTextNode from './components/VInfoTextNode.vue';
 import dampedSineWaveGraph from './demos/dampedSineWave.json'
 
@@ -82,19 +83,14 @@ function createNode(_componentId: string, data: any): NodusBaseNode {
 board.serializer.deserialize(dampedSineWaveGraph, createNode)
 board.graph.evaluate()
 
-function serialize() {
-  const result = board.serializer.serialize()
-  
-  console.log(result)
-}
+board.history.setNodeFactory(createNode)
 
 </script>
 
 <template>
   <VGraph :board="board" />
-  <VNodeSelector :items="items" class="absolute top-2 left-2" @select="(item) => createNodeManually(item.value)" />
-  <button @click="serialize"
-    class="absolute top-2 left-14 z-10 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50">
-    Serialize
-  </button>
+  <div class="absolute top-2 left-2 flex items-center gap-2">
+    <VNodeSelector :items="items" @select="(item) => createNodeManually(item.value)" />
+    <VHistoryToolbar :history="board.history" />
+  </div>
 </template>

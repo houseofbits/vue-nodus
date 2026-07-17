@@ -30,7 +30,7 @@ describe('Serializer', () => {
         board.graph.addNode(node)
 
         const data = board.serializer.serialize()
-        const savedNode = Object.values(data.nodes)[0] as any
+        const savedNode = Object.values(data.nodes)[0]
         expect(savedNode.x).toBe(123)
         expect(savedNode.y).toBe(456)
     })
@@ -73,7 +73,8 @@ describe('Serializer', () => {
         const data = board.serializer.serialize()
 
         board.serializer.deserialize(data, (componentId) => {
-            if (componentId === 'src') return new NodusBaseNode('src', [], [new NodusPort('number')])
+            if (componentId === 'src')
+                return new NodusBaseNode('src', [], [new NodusPort('number')])
             return new NodusBaseNode('tgt', [new NodusPort('number')], [])
         })
 
@@ -91,5 +92,46 @@ describe('Serializer', () => {
 
         board.serializer.deserialize(data, (id) => makeSimpleNode(id))
         expect(board.graph.nodes.size).toBe(2)
+    })
+
+    it('round-trips a connection\'s connectionType through serialize/deserialize', () => {
+        const board = new NodusBoard()
+        const src = new NodusBaseNode('src', [], [new NodusPort('number')])
+        const tgt = new NodusBaseNode('tgt', [new NodusPort('number')], [])
+        board.graph.addNode(src)
+        board.graph.addNode(tgt)
+        board.graph.addConnection(new NodusConnection(src.outputs[0], tgt.inputs[0], '#FFF', 'straight'))
+
+        const data = board.serializer.serialize()
+        board.serializer.deserialize(data, (componentId) => {
+            if (componentId === 'src') return new NodusBaseNode('src', [], [new NodusPort('number')])
+            return new NodusBaseNode('tgt', [new NodusPort('number')], [])
+        })
+
+        const restored = [...board.graph.connections.values()][0]
+        expect(restored.connectionType).toBe('straight')
+    })
+
+    it('deserializes old payloads missing connectionType as "bezier"', () => {
+        const board = new NodusBoard()
+        const src = new NodusBaseNode('src', [], [new NodusPort('number')])
+        const tgt = new NodusBaseNode('tgt', [new NodusPort('number')], [])
+        board.graph.addNode(src)
+        board.graph.addNode(tgt)
+
+        const conn = new NodusConnection(src.outputs[0], tgt.inputs[0])
+        board.graph.addConnection(conn)
+
+        const data = board.serializer.serialize()
+        // Simulate an old save predating the connectionType field.
+        delete (data.connections as any)[conn.id].connectionType
+
+        board.serializer.deserialize(data, (componentId) => {
+            if (componentId === 'src') return new NodusBaseNode('src', [], [new NodusPort('number')])
+            return new NodusBaseNode('tgt', [new NodusPort('number')], [])
+        })
+
+        const restored = [...board.graph.connections.values()][0]
+        expect(restored.connectionType).toBe('bezier')
     })
 })

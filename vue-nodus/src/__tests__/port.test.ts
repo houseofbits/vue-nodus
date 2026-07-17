@@ -36,14 +36,22 @@ describe('Port', () => {
 
 describe('BaseNode port assignment', () => {
     it('sets ioType.Input on all inputs', () => {
-        const node = new NodusBaseNode('test', [new NodusPort('number'), new NodusPort('string')], [])
+        const node = new NodusBaseNode(
+            'test',
+            [new NodusPort('number'), new NodusPort('string')],
+            [],
+        )
         for (const port of node.inputs) {
             expect(port.ioType).toBe(NodusPortType.Input)
         }
     })
 
     it('sets ioType.Output on all outputs', () => {
-        const node = new NodusBaseNode('test', [], [new NodusPort('number'), new NodusPort('color')])
+        const node = new NodusBaseNode(
+            'test',
+            [],
+            [new NodusPort('number'), new NodusPort('color')],
+        )
         for (const port of node.outputs) {
             expect(port.ioType).toBe(NodusPortType.Output)
         }

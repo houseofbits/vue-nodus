@@ -123,7 +123,10 @@ describe('buildBezierPath', () => {
 
 describe('getBezierMidpoint', () => {
     it('matches the buildBezierPath curve sampled at t=0.5', () => {
-        const x1 = 20, y1 = 10, x2 = 340, y2 = 90
+        const x1 = 20,
+            y1 = 10,
+            x2 = 340,
+            y2 = 90
         const d = buildBezierPath(x1, y1, x2, y2, false)
         const [, , cp1x, cp1y, cp2x, cp2y] = extractNumbers(d)
 

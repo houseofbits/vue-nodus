@@ -1,5 +1,6 @@
-import { reactive } from 'vue';
+import { reactive, type Raw } from 'vue'
 import NodusPort, { NodusPortType } from './Port'
+import type NodusGraph from './Graph'
 
 /** Reactive position, size, and display state managed internally by the framework. */
 export interface NodusInternalState {
@@ -51,6 +52,9 @@ export default class NodusBaseNode {
     isPortAutoLayoutEnabled: boolean = true
     componentId: string
 
+    /** The graph this node belongs to. Set by `NodusGraph.addNode()`, cleared by `removeNode()`. */
+    graph?: Raw<NodusGraph>
+
     inputs: Array<NodusPort> = []
     outputs: Array<NodusPort> = []
 
@@ -70,22 +74,28 @@ export default class NodusBaseNode {
      * @param outputs     - Output ports. Their `ioType` is set to `NodusPortType.Output` automatically.
      * @param settings    - Optional appearance and layout overrides.
      */
-    constructor(componentId: string, inputs: Array<NodusPort>, outputs: Array<NodusPort>, settings: Partial<NodusSettingObject> = {}) {
-        this.isThinComponent = settings?.isThinComponent ?? this.isThinComponent;
-        this.isPortAutoLayoutEnabled = settings?.isPortAutoLayoutEnabled ?? this.isPortAutoLayoutEnabled;
-        this.internalState.title = settings?.title ?? this.internalState.title;
-        this.internalState.width = settings?.width ?? this.internalState.width;
-        this.internalState.height = settings?.height ?? this.internalState.height;
-        this.componentId = componentId;
+    constructor(
+        componentId: string,
+        inputs: Array<NodusPort>,
+        outputs: Array<NodusPort>,
+        settings: Partial<NodusSettingObject> = {},
+    ) {
+        this.isThinComponent = settings?.isThinComponent ?? this.isThinComponent
+        this.isPortAutoLayoutEnabled =
+            settings?.isPortAutoLayoutEnabled ?? this.isPortAutoLayoutEnabled
+        this.internalState.title = settings?.title ?? this.internalState.title
+        this.internalState.width = settings?.width ?? this.internalState.width
+        this.internalState.height = settings?.height ?? this.internalState.height
+        this.componentId = componentId
         this.inputs = inputs
         this.outputs = outputs
 
         for (const input of this.inputs) {
-            input.ioType = NodusPortType.Input;
+            input.ioType = NodusPortType.Input
         }
 
         for (const output of this.outputs) {
-            output.ioType = NodusPortType.Output;
+            output.ioType = NodusPortType.Output
         }
     }
 
@@ -106,6 +116,38 @@ export default class NodusBaseNode {
     compute(): void {}
 
     /**
+     * Override to react when one of this node's ports gets connected to another node's port.
+     * Called by `NodusGraph.addConnection()` on both the source and target node of the new connection.
+     * @param port - This node's port that was just connected.
+     * @param otherNode - The node on the other end of the new connection.
+     * @param otherPort - The other node's port that was just connected.
+     */
+    onPortConnected(port: NodusPort, otherNode: NodusBaseNode, otherPort: NodusPort): void {}
+
+    /**
+     * Override to react when one of this node's ports gets disconnected from another node's port.
+     * Called by `NodusGraph.removeConnection()` — including indirectly via `removeNode()`'s
+     * cascade — on both the source and target node of the removed connection.
+     * @param port - This node's port that was just disconnected.
+     * @param otherNode - The node that was on the other end of the removed connection.
+     * @param otherPort - The other node's port that was just disconnected.
+     */
+    onPortDisconnected(port: NodusPort, otherNode: NodusBaseNode, otherPort: NodusPort): void {}
+
+    /** Nodes directly connected downstream of the given output port. Empty if this node isn't in a graph yet. */
+    getChildren(port: NodusPort): NodusBaseNode[] {
+        return this.graph?.getConnectedNodes(port) ?? []
+    }
+
+    /**
+     * Node(s) directly connected upstream of the given input port. Plural since a multiport
+     * input can have more than one. Empty if this node isn't in a graph yet.
+     */
+    getParents(port: NodusPort): NodusBaseNode[] {
+        return this.graph?.getSourceNodes(port) ?? []
+    }
+
+    /**
      * Override to return custom node data to persist. Called by `NodusSerializer.serialize()`.
      * The returned object is merged with internal state (position, size, ports).
      * @returns A JSON-serializable object with custom properties to save.
@@ -121,7 +163,7 @@ export default class NodusBaseNode {
             id: this.id,
             componentId: this.componentId,
             nodeClass: this.constructor.name,
-            ports: this.serializePorts()
+            ports: this.serializePorts(),
         }
     }
 
@@ -130,9 +172,9 @@ export default class NodusBaseNode {
      * Called by `NodusSerializer.deserialize()` before internal state (position, size, ports) is restored.
      * @param data - The full serialized node object, which includes internal state fields alongside your custom ones.
      */
-    deserialize(data: Object) {}
+    deserialize(_data: object) {}
 
-    deserializeInternal(data: Object) {
+    deserializeInternal(data: object) {
         this.deserialize(data)
 
         const typedData = data as any
@@ -147,8 +189,12 @@ export default class NodusBaseNode {
 
         const portData = typedData.ports
         if (portData) {
-            const savedInputs = Object.values(portData).filter((p: any) => p.ioType === NodusPortType.Input)
-            const savedOutputs = Object.values(portData).filter((p: any) => p.ioType === NodusPortType.Output)
+            const savedInputs = Object.values(portData).filter(
+                (p: any) => p.ioType === NodusPortType.Input,
+            )
+            const savedOutputs = Object.values(portData).filter(
+                (p: any) => p.ioType === NodusPortType.Output,
+            )
 
             this.inputs.forEach((port, i) => {
                 const saved = savedInputs[i] as any

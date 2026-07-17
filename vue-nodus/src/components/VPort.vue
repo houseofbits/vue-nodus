@@ -1,11 +1,15 @@
 <template>
-    <div :style="style" :class="['port', { 'port--inactive': isInactive }]" ref="portEl" @pointerdown.stop.prevent="board.graph.selectPort(props.port, $event)" />
+    <div
+        ref="portEl"
+        :style="style"
+        :class="['port', { 'port--inactive': isInactive }]"
+        @pointerdown.stop.prevent="board.graph.selectPort(props.port, $event)"
+    />
 </template>
 
 <script lang="ts" setup>
-
 import { ref, onMounted, onUnmounted, inject, computed } from 'vue'
-import { NodusBoard, NodusPort } from '../models';
+import { NodusBoard, NodusPort } from '../models'
 
 const board = inject<NodusBoard>('board')
 if (!board) throw new Error('VPort must be used inside VGraph')
@@ -14,8 +18,8 @@ const props = defineProps({
     port: {
         type: NodusPort,
         required: true,
-    }
-});
+    },
+})
 
 const portEl = ref<HTMLElement>()
 let observer: ResizeObserver | null = null
@@ -25,12 +29,10 @@ onMounted(() => {
     if (portEl.value === undefined) {
         return
     }
-    board.view.portRegistry.register(props.port.id, portEl.value);
+    board.view.portRegistry.register(props.port.id, portEl.value)
 
     observer = new ResizeObserver(() => {
-        board.view.portRegistry.update(
-            props.port.id
-        )
+        board.view.portRegistry.update(props.port.id)
     })
 
     observer.observe(portEl.value)
@@ -40,9 +42,8 @@ onUnmounted(() => {
     // console.log("unmounting port", props.port.id);
     observer?.disconnect()
 
-    board.view.portRegistry.unregister(props.port.id);
-
-});
+    board.view.portRegistry.unregister(props.port.id)
+})
 
 const style = computed(() => {
     return {
@@ -56,7 +57,6 @@ const isInactive = computed(() => {
     if (selected.id === props.port.id) return false
     return selected.ioType === props.port.ioType || selected.type !== props.port.type
 })
-
 </script>
 
 <style scoped>
@@ -69,7 +69,8 @@ const isInactive = computed(() => {
 }
 
 .port:not(.port--inactive):hover {
-    outline: var(--nodus-port-hover-outline-width, 3px) solid var(--nodus-port-hover-outline-color, rgba(255, 255, 255, 1));
+    outline: var(--nodus-port-hover-outline-width, 3px) solid
+        var(--nodus-port-hover-outline-color, rgba(255, 255, 255, 1));
     outline-offset: 0;
     cursor: pointer;
 }

@@ -1,0 +1,512 @@
+{
+    "nodes": {
+        "seq": {
+            "bpm": 120,
+            "gateLength": 0.5,
+            "attack": 0.01,
+            "release": 0.25,
+            "level": 1,
+            "steps": [
+                { "on": true, "note": 45 },
+                { "on": false, "note": 45 },
+                { "on": true, "note": 48 },
+                { "on": true, "note": 45 },
+                { "on": true, "note": 52 },
+                { "on": false, "note": 45 },
+                { "on": true, "note": 55 },
+                { "on": true, "note": 52 }
+            ],
+            "x": 60,
+            "y": 60,
+            "zIndex": 1,
+            "width": 440,
+            "height": null,
+            "title": "Bass Sequencer",
+            "id": "seq",
+            "componentId": "Sequencer",
+            "nodeClass": "StepSequencerNode",
+            "ports": {
+                "seq-pitch": {
+                    "id": "seq-pitch",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#fbbf24"
+                },
+                "seq-gate": {
+                    "id": "seq-gate",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#fbbf24"
+                }
+            }
+        },
+        "seqHat": {
+            "bpm": 120,
+            "gateLength": 0.1,
+            "attack": 0.001,
+            "release": 0.06,
+            "level": 0.25,
+            "steps": [
+                { "on": false, "note": 57 },
+                { "on": true, "note": 57 },
+                { "on": false, "note": 57 },
+                { "on": true, "note": 57 },
+                { "on": false, "note": 57 },
+                { "on": true, "note": 57 },
+                { "on": false, "note": 57 },
+                { "on": true, "note": 57 }
+            ],
+            "x": 60,
+            "y": 620,
+            "zIndex": 2,
+            "width": 440,
+            "height": null,
+            "title": "Hat Sequencer",
+            "id": "seqHat",
+            "componentId": "Sequencer",
+            "nodeClass": "StepSequencerNode",
+            "ports": {
+                "seqhat-pitch": {
+                    "id": "seqhat-pitch",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#fbbf24"
+                },
+                "seqhat-gate": {
+                    "id": "seqhat-gate",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#fbbf24"
+                }
+            }
+        },
+        "osc": {
+            "waveform": "sawtooth",
+            "frequency": 0,
+            "detune": -5,
+            "x": 580,
+            "y": 60,
+            "zIndex": 3,
+            "width": 240,
+            "height": null,
+            "title": "Oscillator",
+            "id": "osc",
+            "componentId": "Oscillator",
+            "nodeClass": "OscillatorSourceNode",
+            "ports": {
+                "osc-freqmod": {
+                    "id": "osc-freqmod",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#fbbf24"
+                },
+                "osc-out": {
+                    "id": "osc-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "osc2": {
+            "waveform": "square",
+            "frequency": 0,
+            "detune": 5,
+            "x": 580,
+            "y": 420,
+            "zIndex": 4,
+            "width": 240,
+            "height": null,
+            "title": "Oscillator 2",
+            "id": "osc2",
+            "componentId": "Oscillator",
+            "nodeClass": "OscillatorSourceNode",
+            "ports": {
+                "osc2-freqmod": {
+                    "id": "osc2-freqmod",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#fbbf24"
+                },
+                "osc2-out": {
+                    "id": "osc2-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "noise": {
+            "x": 580,
+            "y": 800,
+            "zIndex": 5,
+            "width": 240,
+            "height": null,
+            "title": "Noise",
+            "id": "noise",
+            "componentId": "Noise",
+            "nodeClass": "NoiseSourceNode",
+            "ports": {
+                "noise-out": {
+                    "id": "noise-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "mixer": {
+            "channels": [
+                { "level": 0.8, "pan": -0.3 },
+                { "level": 0.8, "pan": 0.3 },
+                { "level": 0.8, "pan": 0 },
+                { "level": 0.8, "pan": 0 }
+            ],
+            "x": 900,
+            "y": 140,
+            "zIndex": 6,
+            "width": 260,
+            "height": null,
+            "title": "Mixer",
+            "id": "mixer",
+            "componentId": "Mixer",
+            "nodeClass": "MixerControlNode",
+            "ports": {
+                "mixer-in1": {
+                    "id": "mixer-in1",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "mixer-in2": {
+                    "id": "mixer-in2",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "mixer-in3": {
+                    "id": "mixer-in3",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "mixer-in4": {
+                    "id": "mixer-in4",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "mixer-out": {
+                    "id": "mixer-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "lfo": {
+            "waveform": "sine",
+            "rate": 0.25,
+            "depth": 300,
+            "x": 900,
+            "y": 560,
+            "zIndex": 7,
+            "width": 240,
+            "height": null,
+            "title": "LFO",
+            "id": "lfo",
+            "componentId": "Lfo",
+            "nodeClass": "LfoSourceNode",
+            "ports": {
+                "lfo-out": {
+                    "id": "lfo-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#fbbf24"
+                }
+            }
+        },
+        "filter": {
+            "type": "lowpass",
+            "frequency": 900,
+            "q": 8,
+            "x": 1240,
+            "y": 60,
+            "zIndex": 8,
+            "width": 240,
+            "height": null,
+            "title": "Filter",
+            "id": "filter",
+            "componentId": "Filter",
+            "nodeClass": "BiquadFilterControlNode",
+            "ports": {
+                "filter-in": {
+                    "id": "filter-in",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "filter-freqmod": {
+                    "id": "filter-freqmod",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#fbbf24"
+                },
+                "filter-out": {
+                    "id": "filter-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "hatFilter": {
+            "type": "highpass",
+            "frequency": 6000,
+            "q": 1,
+            "x": 1240,
+            "y": 660,
+            "zIndex": 9,
+            "width": 240,
+            "height": null,
+            "title": "Hat Filter",
+            "id": "hatFilter",
+            "componentId": "Filter",
+            "nodeClass": "BiquadFilterControlNode",
+            "ports": {
+                "hatfilter-in": {
+                    "id": "hatfilter-in",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "hatfilter-freqmod": {
+                    "id": "hatfilter-freqmod",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#fbbf24"
+                },
+                "hatfilter-out": {
+                    "id": "hatfilter-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "gainBass": {
+            "gain": 0,
+            "x": 1560,
+            "y": 60,
+            "zIndex": 10,
+            "width": 240,
+            "height": null,
+            "title": "Bass Envelope",
+            "id": "gainBass",
+            "componentId": "Gain",
+            "nodeClass": "GainControlNode",
+            "ports": {
+                "gainbass-in": {
+                    "id": "gainbass-in",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "gainbass-gainmod": {
+                    "id": "gainbass-gainmod",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#fbbf24"
+                },
+                "gainbass-out": {
+                    "id": "gainbass-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "gainHat": {
+            "gain": 0,
+            "x": 1560,
+            "y": 660,
+            "zIndex": 11,
+            "width": 240,
+            "height": null,
+            "title": "Hat Envelope",
+            "id": "gainHat",
+            "componentId": "Gain",
+            "nodeClass": "GainControlNode",
+            "ports": {
+                "gainhat-in": {
+                    "id": "gainhat-in",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "gainhat-gainmod": {
+                    "id": "gainhat-gainmod",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#fbbf24"
+                },
+                "gainhat-out": {
+                    "id": "gainhat-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "analyser": {
+            "x": 1880,
+            "y": 300,
+            "zIndex": 12,
+            "width": 320,
+            "height": null,
+            "title": "Analyser",
+            "id": "analyser",
+            "componentId": "Analyser",
+            "nodeClass": "AnalyserDisplayNode",
+            "ports": {
+                "analyser-in": {
+                    "id": "analyser-in",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                },
+                "analyser-out": {
+                    "id": "analyser-out",
+                    "type": "audio",
+                    "ioType": 1,
+                    "color": "#34d399"
+                }
+            }
+        },
+        "output": {
+            "volume": 0.8,
+            "x": 2280,
+            "y": 340,
+            "zIndex": 13,
+            "width": 240,
+            "height": null,
+            "title": "Output",
+            "id": "output",
+            "componentId": "Output",
+            "nodeClass": "AudioOutputNode",
+            "ports": {
+                "output-in": {
+                    "id": "output-in",
+                    "type": "audio",
+                    "ioType": 0,
+                    "color": "#34d399"
+                }
+            }
+        }
+    },
+    "connections": {
+        "c1": {
+            "id": "c1",
+            "sourcePortId": "seq-pitch",
+            "targetPortId": "osc-freqmod",
+            "color": "#fbbf24",
+            "connectionType": "bezier"
+        },
+        "c2": {
+            "id": "c2",
+            "sourcePortId": "seq-pitch",
+            "targetPortId": "osc2-freqmod",
+            "color": "#fbbf24",
+            "connectionType": "bezier"
+        },
+        "c3": {
+            "id": "c3",
+            "sourcePortId": "seq-gate",
+            "targetPortId": "gainbass-gainmod",
+            "color": "#fbbf24",
+            "connectionType": "bezier"
+        },
+        "c4": {
+            "id": "c4",
+            "sourcePortId": "osc-out",
+            "targetPortId": "mixer-in1",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c5": {
+            "id": "c5",
+            "sourcePortId": "osc2-out",
+            "targetPortId": "mixer-in2",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c6": {
+            "id": "c6",
+            "sourcePortId": "mixer-out",
+            "targetPortId": "filter-in",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c7": {
+            "id": "c7",
+            "sourcePortId": "lfo-out",
+            "targetPortId": "filter-freqmod",
+            "color": "#fbbf24",
+            "connectionType": "bezier"
+        },
+        "c8": {
+            "id": "c8",
+            "sourcePortId": "filter-out",
+            "targetPortId": "gainbass-in",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c9": {
+            "id": "c9",
+            "sourcePortId": "gainbass-out",
+            "targetPortId": "analyser-in",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c10": {
+            "id": "c10",
+            "sourcePortId": "seqhat-gate",
+            "targetPortId": "gainhat-gainmod",
+            "color": "#fbbf24",
+            "connectionType": "bezier"
+        },
+        "c11": {
+            "id": "c11",
+            "sourcePortId": "noise-out",
+            "targetPortId": "hatfilter-in",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c12": {
+            "id": "c12",
+            "sourcePortId": "hatfilter-out",
+            "targetPortId": "gainhat-in",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c13": {
+            "id": "c13",
+            "sourcePortId": "gainhat-out",
+            "targetPortId": "analyser-in",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        },
+        "c14": {
+            "id": "c14",
+            "sourcePortId": "analyser-out",
+            "targetPortId": "output-in",
+            "color": "#34d399",
+            "connectionType": "bezier"
+        }
+    },
+    "board": {
+        "panX": 10,
+        "panY": 10,
+        "zoom": 0.7
+    }
+}

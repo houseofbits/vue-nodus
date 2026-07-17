@@ -4,6 +4,20 @@
 [![license](https://img.shields.io/npm/l/@houseofbits/vue-nodus)](LICENSE)
 [![feature requests](https://img.shields.io/badge/feature%20requests-open-blue)](https://github.com/houseofbits/vue-nodus/issues/new?template=feature_request.md)
 
+## Features
+
+- **Custom nodes** — extend `NodusBaseNode` and pair it with your own Vue component; the library handles dragging, connecting, and deleting ([Creating custom nodes](#creating-custom-nodes))
+- **Live data flow** — reactive ports propagate values through the graph via `compute()`, with batched re-computation in topological order
+- **Undo and redo** — drags, deletes, and interactive connections are tracked automatically; `board.history.records` exposes labeled entries for building a history panel ([Undo and redo](#undo-and-redo))
+- **Connection styles** — bezier, straight, step, and smooth-step edges, each with a dashed variant, plus custom edge classes and a per-connection type resolver ([Connection types](#connection-types))
+- **Typed ports** — connections are validated by port type and direction; inputs accept a single connection by default or many with `isMultiport`
+- **Rich selection** — single click, shift multi-select, and box/marquee select across both nodes and connections
+- **Pan & zoom canvas** — wheel zoom toward the cursor, right-drag panning, an adaptive dot grid, and a scoped `#background` slot for custom backdrops ([Interactivity](#interactivity))
+- **Touch support** — one-finger pan, pinch-to-zoom, tap-to-connect, and touch-friendly delete markers
+- **Fully themeable** — every visual token is a CSS custom property, settable via a typed `theme` prop or plain CSS ([Theming](#theming))
+- **Serializable** — save and restore nodes, connections, and viewport to plain JSON with one call ([Serialization](#serialization))
+- **Vue 3 native + TypeScript** — Composition API throughout, no Canvas hacks, fully typed with shipped `.d.ts`
+
 ## Demo
 
 **[Live demo →](https://houseofbits.github.io/vue-nodus/)**
@@ -226,12 +240,58 @@ Port and connection **colors** are set per-instance via `NodusPort.color` and `N
 | Action | Gesture |
 |---|---|
 | Move node | Left-click drag on title bar |
+| Select node / connection | Left-click |
 | Multi-select | Shift + left-click |
-| Pan canvas | Right-click drag |
-| Zoom | Scroll wheel |
+| Box select | Left-click drag on empty canvas (Shift + drag extends the selection) |
+| Pan canvas | Right-click drag, or one-finger drag on touch |
+| Zoom | Scroll wheel, or two-finger pinch on touch |
 | Connect ports | Click source port, then click target port (same type, opposite direction) |
 | Delete selected | Delete key |
 | Delete on touch | Tap the × on a selected node's title bar, or on a selected connection |
+| Undo | Ctrl/Cmd + Z |
+| Redo | Ctrl/Cmd + Shift + Z, or Ctrl/Cmd + Y |
+
+## Connection types
+
+Every connection is drawn by a named **connection type**. Eight are built in: `bezier` (the default), `straight`, `step`, and `smoothstep`, each with a `-dashed` variant (`bezier-dashed`, etc.).
+
+### Choosing a type per connection
+
+Register a **resolver** to decide which type applies whenever the user connects two ports. Return a registered name, a `NodusConnectionType` subclass (auto-registered on first use), or `undefined` to fall back to `bezier`:
+
+```ts
+board.registerConnectionTypeResolver((source, target) => {
+  if (source.type === 'signal') return 'step-dashed'
+  return undefined // default bezier
+})
+```
+
+When restoring a saved graph, each connection keeps the `connectionType` it was created with.
+
+### Custom connection types
+
+Subclass `NodusConnectionType`, implement `buildPath()` and `getMidpoint()`, and register it under a name:
+
+```ts
+import { NodusConnectionType } from '@houseofbits/vue-nodus'
+
+class ZigZag extends NodusConnectionType {
+  buildPath(x1, y1, x2, y2, invert) {
+    const midX = (x1 + x2) / 2
+    return `M ${x1} ${y1} L ${midX} ${y2} L ${x2} ${y2}`
+  }
+  getMidpoint(x1, y1, x2, y2, invert) {
+    return { x: (x1 + x2) / 2, y: y2 }
+  }
+}
+
+board.registerConnectionType('zigzag', new ZigZag())
+board.registerConnectionType('zigzag-dashed', new ZigZag({ dashed: true }))
+```
+
+A connection type can also set an optional `render` Vue component (receiving `ConnectionRenderProps`) to fully replace the default edge rendering.
+
+> Note: the live preview line shown while dragging out a new connection is always a bezier curve, regardless of the type the resolver will assign.
 
 ## Serialization
 
@@ -241,7 +301,7 @@ Save the entire graph state (nodes, connections, viewport) to a plain JSON objec
 const saved = board.serializer.serialize()
 // {
 //   nodes: { [id]: { ...nodeData, ports: {...} } },
-//   connections: { [id]: { sourcePortId, targetPortId, color } },
+//   connections: { [id]: { sourcePortId, targetPortId, color, connectionType } },
 //   board: { panX, panY, zoom }
 // }
 localStorage.setItem('graph', JSON.stringify(saved))
@@ -275,6 +335,41 @@ deserialize(data: any) {
 }
 ```
 
+## Undo and redo
+
+Every board ships with an undo/redo history at `board.history`. The keyboard shortcuts (Ctrl/Cmd + Z to undo, Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y to redo) work out of the box — but restoring a snapshot needs to reconstruct node instances, so you must register a node factory first. It's the same factory shape `serializer.deserialize` uses, so one function serves both:
+
+```ts
+const createNode = (componentId: string) => {
+  switch (componentId) {
+    case 'add-node': return new AddNode()
+    default: throw new Error(`Unknown node type: ${componentId}`)
+  }
+}
+
+board.history.setNodeFactory(createNode)
+board.serializer.deserialize(saved, createNode)
+```
+
+Calling `undo()`/`redo()` without a factory throws a descriptive error.
+
+### What gets tracked
+
+Node drags (coalesced into a single entry — a click without movement records nothing), node and connection deletes, and interactive connections are pushed onto the undo stack automatically. Programmatic mutations like `graph.addNode()` / `graph.removeNode()` are **not** — call `board.history.snapshot(label)` immediately before them if they should be undoable:
+
+```ts
+board.history.snapshot('Node added')
+board.graph.addNode(new AddNode())
+```
+
+The undo stack holds 50 entries by default; a new action clears the redo stack.
+
+### Building a history panel
+
+`records` returns the undoable actions (oldest first) with human-readable labels like *"Node Add moved"* or *"Connected Add and Output"* — render it alongside `undo()` / `redo()` / `canUndo()` / `canRedo()` for a toolbar or dropdown. See `VHistoryToolbar.vue` in the repository's demo app for a complete example.
+
+For continuous gestures of your own, bracket them with `captureSnapshot()` / `commitGesture()`: capture before the gesture starts, commit when it ends, and nothing is recorded if the state didn't change.
+
 ## API reference
 
 ### `NodusBoard`
@@ -286,8 +381,13 @@ Top-level orchestrator. Create one instance per editor.
 | `graph` | `NodusGraph` | The node graph |
 | `view` | `View` | Interaction and rendering state |
 | `serializer` | `NodusSerializer` | Save/restore helpers |
+| `history` | `NodusHistory` | Undo/redo stacks (see [Undo and redo](#undo-and-redo)) |
+| `connectionTypes` | `NodusConnectionTypeRegistry` | Named connection types (see [Connection types](#connection-types)) |
 | `registerComponent(id, component)` | method | Register a Vue component for a node type |
 | `getComponent(id)` | method | Look up a registered component by ID |
+| `registerConnectionType(name, type)` | method | Register a custom `NodusConnectionType` instance |
+| `getConnectionType(name)` | method | Look up a registered connection type by name |
+| `registerConnectionTypeResolver(resolver)` | method | Decide the connection type for each newly connected port pair |
 
 ### `NodusGraph`
 
@@ -351,10 +451,10 @@ new NodusPort(type: string, color?: string, isMultiport?: boolean, defaultValue?
 ### `NodusConnection`
 
 ```ts
-new NodusConnection(sourcePort: NodusPort, targetPort: NodusPort, color?: string)
+new NodusConnection(sourcePort: NodusPort, targetPort: NodusPort, color?: string, connectionType?: string)
 ```
 
-Connections are created automatically when the user clicks two compatible ports. You only need to instantiate `NodusConnection` directly when restoring from serialized state.
+`connectionType` is a registry key naming the connection's edge style; it defaults to `'bezier'` (see [Connection types](#connection-types)). Connections are created automatically when the user clicks two compatible ports. You only need to instantiate `NodusConnection` directly when restoring from serialized state.
 
 ### `NodusSerializer`
 
@@ -365,6 +465,20 @@ Accessed via `board.serializer`.
 | `serialize()` | Returns a plain `JSON.stringify`-safe object |
 | `deserialize(data, factory)` | Restores graph state from a serialized object; `factory` is `(componentId: string, data: any) => NodusBaseNode` |
 
+### `NodusHistory`
+
+Accessed via `board.history`. See [Undo and redo](#undo-and-redo) for a walkthrough.
+
+| Member | Description |
+|---|---|
+| `setNodeFactory(factory)` | **Required before `undo()`/`redo()`** — same factory shape as `deserialize` |
+| `undo()` / `redo()` | Restore the previous / next state |
+| `canUndo()` / `canRedo()` | Whether the respective stack is non-empty (reactive) |
+| `records` | `NodusHistoryRecord[]` of undoable actions, oldest first, each with a `label` |
+| `snapshot(label)` | Push the current state as an undo point (call before a programmatic mutation) |
+| `captureSnapshot()` | Capture state without recording — pair with `commitGesture()` |
+| `commitGesture(before, label)` | Record a bracketed gesture; no-op if nothing changed |
+
 ---
 
 ### Component: `VGraph`
@@ -373,6 +487,8 @@ Accessed via `board.serializer`.
 |---|---|---|---|
 | `board` | `NodusBoard` | yes | The board instance to render |
 | `theme` | `Partial<NodusTheme>` | no | Override visual tokens (see [Theming](#theming)) |
+
+Slots: `default`, `#background` (scoped: `{ panX, panY, zoom }`) — render custom background content (a pattern, image, or canvas) behind the connections and nodes layers. Providing this slot replaces the built-in dot grid; leave it unused to keep the default grid.
 
 ### Component: `VBaseNode`
 

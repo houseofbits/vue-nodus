@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import NodusGraph from '../models/Graph'
 import NodusBaseNode from '../models/BaseNode'
-import NodusPort, { NodusPortType } from '../models/Port'
+import NodusPort from '../models/Port'
 import NodusConnection from '../models/Connection'
+import NodusConnectionType from '../models/connectionTypes/ConnectionType'
 
 function makeNode(componentId = 'test', inputs: NodusPort[] = [], outputs: NodusPort[] = []) {
     return new NodusBaseNode(componentId, inputs, outputs)
@@ -10,13 +11,13 @@ function makeNode(componentId = 'test', inputs: NodusPort[] = [], outputs: Nodus
 
 /** Waits for every pending reactive flush (however many microtask layers deep) to settle. */
 function flush(): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, 0))
+    return new Promise((resolve) => setTimeout(resolve, 0))
 }
 
 class RecordingNode extends NodusBaseNode {
     calls: unknown[][] = []
     compute() {
-        this.calls.push(this.inputs.map(p => p.value))
+        this.calls.push(this.inputs.map((p) => p.value))
     }
 }
 
@@ -26,6 +27,17 @@ class PassThroughNode extends NodusBaseNode {
     }
     compute() {
         this.outputs[0].value = this.inputs[0].value
+    }
+}
+
+class ConnectionRecordingNode extends NodusBaseNode {
+    connected: unknown[][] = []
+    disconnected: unknown[][] = []
+    onPortConnected(port: NodusPort, otherNode: NodusBaseNode, otherPort: NodusPort) {
+        this.connected.push([port, otherNode, otherPort])
+    }
+    onPortDisconnected(port: NodusPort, otherNode: NodusBaseNode, otherPort: NodusPort) {
+        this.disconnected.push([port, otherNode, otherPort])
     }
 }
 
@@ -77,6 +89,23 @@ describe('Graph', () => {
         it('does nothing when removing a non-existent node', () => {
             expect(() => graph.removeNode('nonexistent-id')).not.toThrow()
         })
+
+        it('sets node.graph on addNode and clears it on removeNode', () => {
+            const node = makeNode()
+            graph.addNode(node)
+            expect(node.graph).toBe(graph)
+
+            graph.removeNode(node.id)
+            expect(node.graph).toBeUndefined()
+        })
+
+        it('preserves node.graph identity through the reactive nodes Map (markRaw regression)', () => {
+            const node = makeNode()
+            graph.addNode(node)
+
+            const fetched = graph.nodes.get(node.id)!
+            expect(fetched.graph).toBe(graph)
+        })
     })
 
     describe('addConnection / removeConnection', () => {
@@ -117,6 +146,127 @@ describe('Graph', () => {
 
             graph.addConnection(new NodusConnection(output, input))
             expect(input.value).toBe(42)
+        })
+
+        it('calls onPortConnected on both source and target nodes with correct arguments', () => {
+            const output = new NodusPort('number')
+            const input = new NodusPort('number')
+            const src = new ConnectionRecordingNode('src', [], [output])
+            const tgt = new ConnectionRecordingNode('tgt', [input], [])
+            graph.addNode(src)
+            graph.addNode(tgt)
+
+            const conn = new NodusConnection(output, input)
+            graph.addConnection(conn)
+
+            expect(src.connected).toEqual([[output, tgt, input]])
+            expect(tgt.connected).toEqual([[input, src, output]])
+            expect(src.disconnected).toEqual([])
+            expect(tgt.disconnected).toEqual([])
+        })
+
+        it('calls onPortDisconnected on both source and target nodes on removeConnection', () => {
+            const output = new NodusPort('number')
+            const input = new NodusPort('number')
+            const src = new ConnectionRecordingNode('src', [], [output])
+            const tgt = new ConnectionRecordingNode('tgt', [input], [])
+            graph.addNode(src)
+            graph.addNode(tgt)
+
+            const conn = new NodusConnection(output, input)
+            graph.addConnection(conn)
+
+            graph.removeConnection(conn.id)
+
+            expect(src.disconnected).toEqual([[output, tgt, input]])
+            expect(tgt.disconnected).toEqual([[input, src, output]])
+        })
+
+        it('calls onPortDisconnected on both nodes when the connection is removed via removeNode cascade', () => {
+            const output = new NodusPort('number')
+            const input = new NodusPort('number')
+            const src = new ConnectionRecordingNode('src', [], [output])
+            const tgt = new ConnectionRecordingNode('tgt', [input], [])
+            graph.addNode(src)
+            graph.addNode(tgt)
+
+            const conn = new NodusConnection(output, input)
+            graph.addConnection(conn)
+
+            graph.removeNode(src.id)
+
+            expect(src.disconnected).toEqual([[output, tgt, input]])
+            expect(tgt.disconnected).toEqual([[input, src, output]])
+        })
+
+        it('does not fire callbacks on unrelated nodes when a different connection is removed', () => {
+            const outA = new NodusPort('number')
+            const inA = new NodusPort('number')
+            const outB = new NodusPort('number')
+            const inB = new NodusPort('number')
+            const srcA = new ConnectionRecordingNode('srcA', [], [outA])
+            const tgtA = new ConnectionRecordingNode('tgtA', [inA], [])
+            const srcB = new ConnectionRecordingNode('srcB', [], [outB])
+            const tgtB = new ConnectionRecordingNode('tgtB', [inB], [])
+            graph.addNode(srcA)
+            graph.addNode(tgtA)
+            graph.addNode(srcB)
+            graph.addNode(tgtB)
+
+            const connA = new NodusConnection(outA, inA)
+            const connB = new NodusConnection(outB, inB)
+            graph.addConnection(connA)
+            graph.addConnection(connB)
+
+            graph.removeConnection(connB.id)
+
+            expect(srcB.disconnected).toEqual([[outB, tgtB, inB]])
+            expect(tgtB.disconnected).toEqual([[inB, srcB, outB]])
+            expect(srcA.disconnected).toEqual([])
+            expect(tgtA.disconnected).toEqual([])
+        })
+
+        it('does not throw when removing a non-existent connection', () => {
+            expect(() => graph.removeConnection('nonexistent-id')).not.toThrow()
+        })
+    })
+
+    describe('getSourceNodes', () => {
+        it('returns the upstream node for a connected input port', () => {
+            const output = new NodusPort('number')
+            const input = new NodusPort('number')
+            const src = makeNode('src', [], [output])
+            const tgt = makeNode('tgt', [input], [])
+            graph.addNode(src)
+            graph.addNode(tgt)
+            graph.addConnection(new NodusConnection(output, input))
+
+            expect(graph.getSourceNodes(input)).toEqual([src])
+        })
+
+        it('returns an empty array for an unconnected input port', () => {
+            const input = new NodusPort('number')
+            const tgt = makeNode('tgt', [input], [])
+            graph.addNode(tgt)
+
+            expect(graph.getSourceNodes(input)).toEqual([])
+        })
+
+        it('returns all upstream nodes for a multiport input with multiple connections', () => {
+            const outA = new NodusPort('number')
+            const outB = new NodusPort('number')
+            const input = new NodusPort('number', 'white', true)
+            const srcA = makeNode('srcA', [], [outA])
+            const srcB = makeNode('srcB', [], [outB])
+            const tgt = makeNode('tgt', [input], [])
+            graph.addNode(srcA)
+            graph.addNode(srcB)
+            graph.addNode(tgt)
+            graph.addConnection(new NodusConnection(outA, input))
+            graph.addConnection(new NodusConnection(outB, input))
+
+            expect(graph.getSourceNodes(input)).toEqual(expect.arrayContaining([srcA, srcB]))
+            expect(graph.getSourceNodes(input)).toHaveLength(2)
         })
     })
 
@@ -305,6 +455,69 @@ describe('Graph', () => {
 
             expect(warn).not.toHaveBeenCalled()
             warn.mockRestore()
+        })
+    })
+
+    describe('connection type resolver', () => {
+        function connectAndGetConnection(): NodusConnection {
+            const src = makeNode('src', [], [new NodusPort('number')])
+            const tgt = makeNode('tgt', [new NodusPort('number')], [])
+            graph.addNode(src)
+            graph.addNode(tgt)
+
+            graph.selectPort(src.outputs[0])
+            graph.selectPort(tgt.inputs[0])
+
+            return [...graph.connections.values()][0]
+        }
+
+        it('falls back to "bezier" when no resolver is registered', () => {
+            const conn = connectAndGetConnection()
+            expect(conn.connectionType).toBe('bezier')
+        })
+
+        it('falls back to "bezier" when the resolver returns undefined', () => {
+            graph.registerConnectionTypeResolver(() => undefined)
+            const conn = connectAndGetConnection()
+            expect(conn.connectionType).toBe('bezier')
+        })
+
+        it('uses the string returned by the resolver as the connectionType', () => {
+            graph.registerConnectionTypeResolver(() => 'straight')
+            const conn = connectAndGetConnection()
+            expect(conn.connectionType).toBe('straight')
+        })
+
+        it('auto-registers a class returned by the resolver and stores its derived key', () => {
+            class CustomType extends NodusConnectionType {
+                buildPath(x1: number, y1: number, x2: number, y2: number): string {
+                    return `M ${x1} ${y1} L ${x2} ${y2}`
+                }
+                getMidpoint(x1: number, y1: number, x2: number, y2: number) {
+                    return { x: (x1 + x2) / 2, y: (y1 + y2) / 2 }
+                }
+            }
+            graph.registerConnectionTypeResolver(() => CustomType)
+
+            const conn = connectAndGetConnection()
+            expect(conn.connectionType).toBe('CustomType')
+            expect(graph.connectionTypeRegistry.get('CustomType')).toBeInstanceOf(CustomType)
+        })
+
+        it('is not invoked when a connection is added directly via addConnection()', () => {
+            const resolver = vi.fn(() => 'straight')
+            graph.registerConnectionTypeResolver(resolver)
+
+            const src = makeNode('src', [], [new NodusPort('number')])
+            const tgt = makeNode('tgt', [new NodusPort('number')], [])
+            graph.addNode(src)
+            graph.addNode(tgt)
+
+            const conn = new NodusConnection(src.outputs[0], tgt.inputs[0])
+            graph.addConnection(conn)
+
+            expect(resolver).not.toHaveBeenCalled()
+            expect(conn.connectionType).toBe('bezier')
         })
     })
 })
