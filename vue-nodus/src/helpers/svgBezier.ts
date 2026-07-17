@@ -1,5 +1,7 @@
 const MIN_CURVE_OFFSET = 30
 const MAX_CURVE_OFFSET = 150
+const MAX_VERTICAL_BOW = 24
+const VERTICAL_BOW_FALLOFF = 60
 
 /**
  * Exported (but not part of the public package API — this module isn't re-exported from
@@ -24,11 +26,17 @@ export function bezierControlPoints(
         cpOffset = -cpOffset
     }
 
+    // Near-level connections would otherwise render as a flat line (and hide the
+    // delete marker on it). Bow both control points away from the shared y, fading
+    // the bow linearly to zero as |dy| approaches the falloff distance.
+    const dy = y2 - y1
+    const bow = MAX_VERTICAL_BOW * Math.max(0, 1 - Math.abs(dy) / VERTICAL_BOW_FALLOFF)
+
     return {
         cp1x: x1 + cpOffset,
-        cp1y: y1,
+        cp1y: y1 + bow,
         cp2x: x2 - cpOffset,
-        cp2y: y2,
+        cp2y: y2 + bow,
     }
 }
 
