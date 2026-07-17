@@ -1,6 +1,6 @@
-import { reactive } from 'vue';
+import { reactive } from 'vue'
 import Vector2 from '../types/Vector2'
-import Viewport from './Viewport';
+import Viewport from './Viewport'
 
 export default class PortRegistry {
     portElements: Map<string, HTMLElement> = new Map()
@@ -34,13 +34,13 @@ export default class PortRegistry {
     }
 
     updateAll() {
-        for (const [portId, el] of this.portElements) {
+        for (const portId of this.portElements.keys()) {
             this.update(portId)
         }
     }
 
     update(portId: string) {
-        const el = this.portElements.get(portId);
+        const el = this.portElements.get(portId)
 
         if (!el) {
             return
@@ -55,7 +55,7 @@ export default class PortRegistry {
         const x = worldSpace.x + elementWidth * 0.5
         const y = worldSpace.y + elementHeight * 0.5
 
-        this.portPositions.set(portId, { x, y });
+        this.portPositions.set(portId, { x, y })
     }
 
     get(portId: string): Vector2 | undefined {

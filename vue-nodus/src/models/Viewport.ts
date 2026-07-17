@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { reactive } from 'vue'
 import Vector2 from '../types/Vector2'
 
 interface InternalState {
@@ -24,21 +24,19 @@ export default class Viewport {
     pinchStartDistance = 0
     pinchStartZoom = 1
 
-    constructor() {
-
-    }
+    constructor() {}
 
     screenToWorld(x: number, y: number): Vector2 {
         return {
             x: (x - this.state.panX) / this.state.zoom,
-            y: (y - this.state.panY) / this.state.zoom
+            y: (y - this.state.panY) / this.state.zoom,
         }
     }
 
     worldToScreen(x: number, y: number): Vector2 {
         return {
             x: x * this.state.zoom + this.state.panX,
-            y: y * this.state.zoom + this.state.panY
+            y: y * this.state.zoom + this.state.panY,
         }
     }
 
@@ -76,9 +74,7 @@ export default class Viewport {
         const zoomSpeed = 0.1
         const oldZoom = this.state.zoom
 
-        const newZoom = event.deltaY < 0
-            ? oldZoom * (1 + zoomSpeed)
-            : oldZoom / (1 + zoomSpeed)
+        const newZoom = event.deltaY < 0 ? oldZoom * (1 + zoomSpeed) : oldZoom / (1 + zoomSpeed)
 
         const mouseX = event.clientX - rect.left
         const mouseY = event.clientY - rect.top

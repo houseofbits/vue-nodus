@@ -2,8 +2,16 @@
     <div class="nodus-node" :class="{ 'nodus-selected': isSelected }">
         <div class="nodus-title-bar nodus-drag-handle">
             <slot name="title">{{ node.internalState.title }}</slot>
-            <button v-if="isSelected" type="button" class="nodus-delete-btn"
-                aria-label="Delete node" @pointerdown.stop @click.stop="onDelete">&times;</button>
+            <button
+                v-if="isSelected"
+                type="button"
+                class="nodus-delete-btn"
+                aria-label="Delete node"
+                @pointerdown.stop
+                @click.stop="onDelete"
+            >
+                &times;
+            </button>
         </div>
 
         <div class="nodus-window-content">
@@ -37,20 +45,19 @@ const props = defineProps({
     },
     isSelected: {
         type: Boolean,
-        default: false
+        default: false,
     },
 })
 
 const nodeHeight = computed(() => {
     return {
-        height: props.node.internalState.height + 'px'
+        height: props.node.internalState.height + 'px',
     }
-});
+})
 
 function onDelete() {
     board?.view.deleteNode(props.node)
 }
-
 </script>
 
 <style scoped>
@@ -67,13 +74,17 @@ function onDelete() {
 }
 
 .nodus-selected {
-    outline: var(--nodus-node-selection-width, 4px) solid var(--nodus-node-selection-color, rgba(255, 255, 255, 1));
+    outline: var(--nodus-node-selection-width, 4px) solid
+        var(--nodus-node-selection-color, rgba(255, 255, 255, 1));
     outline-offset: 0;
 }
 
 .nodus-title-bar {
     height: auto;
-    background: var(--nodus-node-title-bg, linear-gradient(14deg, rgba(0, 132, 184, 1) 0%, rgba(91, 176, 175, 1) 100%));
+    background: var(
+        --nodus-node-title-bg,
+        linear-gradient(14deg, rgba(0, 132, 184, 1) 0%, rgba(91, 176, 175, 1) 100%)
+    );
     color: var(--nodus-node-title-color, white);
     padding: 8px;
     padding-top: 4px;

@@ -35,21 +35,27 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Type-check library
+        run: npm run tsc --workspace @houseofbits/vue-nodus
+
+      - name: Test library
+        run: npm test --workspace @houseofbits/vue-nodus
+
       - name: Build library
         run: npm run build --workspace vue-nodus
 
       - name: Type-check demo
-        working-directory: vue-nodus-demo
+        working-directory: vue-nodus-audio-demo
         run: npx vue-tsc -b
 
       - name: Build demo
-        working-directory: vue-nodus-demo
+        working-directory: vue-nodus-audio-demo
         run: npx vite build --base /vue-nodus/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: vue-nodus-demo/dist
+          path: vue-nodus-audio-demo/dist
 
   deploy:
     needs: build

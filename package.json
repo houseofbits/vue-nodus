@@ -7,17 +7,31 @@
     "test": "npm run test --workspace @houseofbits/vue-nodus",
     "test:watch": "npm run test:watch --workspace @houseofbits/vue-nodus",
     "tsc": "npm run tsc --workspace @houseofbits/vue-nodus",
+    "lint": "npm run lint --workspace @houseofbits/vue-nodus",
     "demo:dev": "npm run dev --workspace vue-nodus-demo",
     "demo:build": "npm run build --workspace vue-nodus-demo",
     "demo:preview": "npm run preview --workspace vue-nodus-demo",
+    "audio:dev": "npm run dev --workspace vue-nodus-audio-demo",
+    "audio:build": "npm run build --workspace vue-nodus-audio-demo",
+    "audio:preview": "npm run preview --workspace vue-nodus-audio-demo",
     "version": "npm version $npm_new_version --workspace vue-nodus --no-git-tag-version && git add vue-nodus/package.json"
   },
   "workspaces": [
     "vue-nodus",
-    "vue-nodus-demo"
+    "vue-nodus-demo",
+    "vue-nodus-audio-demo"
   ],
   "optionalDependencies": {
     "lightningcss-linux-x64-gnu": "1.32.0"
   },
-  "version": "0.2.14"
+  "version": "0.2.14",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.7.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.9.2",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.5",
+    "typescript-eslint": "^8.64.0"
+  }
 }

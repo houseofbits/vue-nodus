@@ -4,10 +4,12 @@
             <span class="demo-title">vue-nodus playground</span>
             <div class="demo-actions">
                 <button class="btn" @click="saveGraph">Save</button>
-                <button class="btn" @click="loadGraph" :disabled="!savedData">Load</button>
+                <button class="btn" :disabled="!savedData" @click="loadGraph">Load</button>
                 <button class="btn btn-secondary" @click="resetGraph">Reset</button>
             </div>
-            <span class="demo-hint">Right-click + drag to pan · Scroll to zoom · Click ports to connect</span>
+            <span class="demo-hint"
+                >Right-click + drag to pan · Scroll to zoom · Click ports to connect</span
+            >
         </header>
 
         <div class="demo-canvas">
@@ -30,7 +32,7 @@ function saveGraph() {
 
 function loadGraph() {
     if (!savedData.value) return
-    const data = JSON.parse(savedData.value)
+    const data: unknown = JSON.parse(savedData.value)
     board.serializer.deserialize(data, (componentId) => {
         throw new Error(`Unknown node type: ${componentId}`)
     })
@@ -38,7 +40,7 @@ function loadGraph() {
 
 function resetGraph() {
     const nodeIds = [...board.graph.nodes.keys()]
-    nodeIds.forEach(id => board.graph.removeNode(id))
+    nodeIds.forEach((id) => board.graph.removeNode(id))
 }
 </script>
 

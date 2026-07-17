@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref } from 'vue'
 import NodusBaseNode from './BaseNode'
 import NodusConnection from './Connection'
 
@@ -6,6 +6,24 @@ interface SelectedNode {
     node: NodusBaseNode
     dragStartX: number
     dragStartY: number
+}
+
+/** Axis-aligned rectangle in world coordinates. */
+export interface Rect {
+    x: number
+    y: number
+    width: number
+    height: number
+}
+
+/** `true` when the two rectangles overlap (touching edges count as overlapping). */
+export function rectsIntersect(a: Rect, b: Rect): boolean {
+    return (
+        a.x <= b.x + b.width &&
+        a.x + a.width >= b.x &&
+        a.y <= b.y + b.height &&
+        a.y + a.height >= b.y
+    )
 }
 
 export default class SelectionController {
@@ -22,10 +40,33 @@ export default class SelectionController {
         } else {
             this.selectedConnections.value = []
             if (this.isSelected(node)) {
-                this.selectedNodes.value = this.selectedNodes.value.filter(n => n.node.id !== node.id)
+                this.selectedNodes.value = this.selectedNodes.value.filter(
+                    (n) => n.node.id !== node.id,
+                )
             } else {
                 this.selectedNodes.value.push({ node, dragStartX: 0, dragStartY: 0 })
             }
+        }
+    }
+
+    /**
+     * Select a set of nodes and connections at once (used by rectangle drag-select).
+     * Non-additive replaces the current selection (empty arrays clear it);
+     * additive appends items that aren't already selected.
+     */
+    selectMany(nodes: NodusBaseNode[], additive = false, connections: NodusConnection[] = []) {
+        const nodeAdditions = additive ? nodes.filter((node) => !this.isSelected(node)) : nodes
+        const entries = nodeAdditions.map((node) => ({ node, dragStartX: 0, dragStartY: 0 }))
+        const connectionAdditions = additive
+            ? connections.filter((connection) => !this.isConnectionSelected(connection))
+            : connections
+
+        if (additive) {
+            this.selectedNodes.value.push(...entries)
+            this.selectedConnections.value.push(...connectionAdditions)
+        } else {
+            this.selectedNodes.value = entries
+            this.selectedConnections.value = [...connectionAdditions]
         }
     }
 
@@ -36,7 +77,9 @@ export default class SelectionController {
         } else {
             this.selectedNodes.value = []
             if (this.isConnectionSelected(connection)) {
-                this.selectedConnections.value = this.selectedConnections.value.filter(c => c.id !== connection.id)
+                this.selectedConnections.value = this.selectedConnections.value.filter(
+                    (c) => c.id !== connection.id,
+                )
             } else {
                 this.selectedConnections.value.push(connection)
             }
@@ -44,7 +87,7 @@ export default class SelectionController {
     }
 
     isConnectionSelected(connection: NodusConnection): boolean {
-        return this.selectedConnections.value.some(c => c.id === connection.id)
+        return this.selectedConnections.value.some((c) => c.id === connection.id)
     }
 
     getSelectedConnections(): NodusConnection[] {
@@ -57,7 +100,7 @@ export default class SelectionController {
     }
 
     isSelected(node: NodusBaseNode): boolean {
-        return this.selectedNodes.value.some(n => n.node.id === node.id)
+        return this.selectedNodes.value.some((n) => n.node.id === node.id)
     }
 
     getSelected() {

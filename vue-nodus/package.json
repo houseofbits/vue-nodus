@@ -37,6 +37,7 @@
   },
   "scripts": {
     "tsc": "vue-tsc --noEmit",
+    "lint": "eslint src",
     "build": "vite build",
     "dev": "vite build --watch",
     "demo": "vite",

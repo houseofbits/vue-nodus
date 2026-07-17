@@ -6,6 +6,8 @@ export interface NodusTheme {
     nodeShadow?: string
     nodeSelectionColor?: string
     nodeSelectionWidth?: string
+    selectionBoxBorderColor?: string
+    selectionBoxBg?: string
     nodeTitleBg?: string
     nodeTitleColor?: string
     nodeTitleBorderColor?: string

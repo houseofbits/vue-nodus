@@ -7,10 +7,16 @@ Build visual node editors for Vue 3 — drag-and-drop node graphs like Blender's
 [![feature requests](https://img.shields.io/badge/feature%20requests-open-blue)](https://github.com/houseofbits/vue-nodus/issues/new?template=feature_request.md)
 
 - **Nodes your way** — extend `NodusBaseNode`, drop in a Vue component; the library handles drag, connect, and delete
-- **Live data flow** — reactive ports propagate values through the graph automatically via `compute()`
+- **Live data flow** — reactive ports propagate values through the graph automatically via `compute()`, with batched topological re-evaluation
+- **Undo/redo history** — drags, deletes, and connections are tracked automatically; `board.history.records` exposes labeled entries for building a history panel
+- **Connection styles** — bezier, straight, step, and smooth-step edges (each with a dashed variant), custom edge classes, and a per-connection resolver
+- **Typed ports** — connections are validated by port type and direction; inputs accept one connection or many (`isMultiport`)
+- **Rich selection** — single click, shift multi-select, and box/marquee select across nodes and connections
+- **Pan & zoom canvas** — wheel zoom toward the cursor, right-drag panning, an adaptive dot grid, and a custom `#background` slot
+- **Touch support** — one-finger pan, pinch-to-zoom, tap-to-connect, and touch-friendly delete markers
 - **Fully themeable** — every visual token is a CSS custom property; restyle the whole editor in one object
-- **Serializable** — save and restore complete graph state to plain JSON with a single call
-- **Vue 3 native** — Composition API throughout, no Canvas hacks, zero jQuery
+- **Serializable** — save and restore nodes, connections, and viewport to plain JSON with a single call
+- **Vue 3 native + TypeScript** — Composition API throughout, no Canvas hacks, fully typed with shipped `.d.ts`
 
 ## Demo
 
@@ -25,7 +31,13 @@ npm install
 npm run demo:dev
 ```
 
-The demo builds a live math graph — constant values flow through add, multiply, and divide nodes to a live output. Fully editable, pannable, zoomable, and serializable.
+The demo builds a live math graph — constants flow through math operators (add, multiply, divide, min, max), clamp, condition, and unary math (sin, cos, square, sqrt) nodes into outputs and a live 2D plotter node. It includes a node palette, an undo/redo history toolbar, and loads a saved graph on startup.
+
+There's also a **Web Audio synthesizer** demo built entirely on vue-nodus — oscillators, LFOs, filters, delay, mixer, step sequencer, and an analyser node, with JSON patch presets:
+
+```bash
+npm run audio:dev
+```
 
 ## Install
 

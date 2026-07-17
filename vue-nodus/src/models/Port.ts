@@ -20,7 +20,7 @@ export default class NodusPort {
     /** Type tag used to validate connections. Only ports with the same `type` can be connected. */
     type: string
     /** CSS color for the port circle and its connections. Defaults to `'white'`. */
-    color = "white"
+    color = 'white'
     /** Set automatically by `NodusBaseNode` — `NodusPortType.Input` or `NodusPortType.Output`. */
     ioType: NodusPortType = NodusPortType.Input
     /**
@@ -37,7 +37,12 @@ export default class NodusPort {
      * @param isMultiport  - Allow multiple incoming connections. Defaults to `false`.
      * @param defaultValue - Initial value of the port. Defaults to `undefined`.
      */
-    constructor(type: string, color: string = 'white', isMultiport: boolean = false, defaultValue: unknown = undefined) {
+    constructor(
+        type: string,
+        color: string = 'white',
+        isMultiport: boolean = false,
+        defaultValue: unknown = undefined,
+    ) {
         this.type = type
         this.color = color
         this.isMultiport = isMultiport

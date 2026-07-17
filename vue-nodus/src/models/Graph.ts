@@ -1,7 +1,12 @@
 import NodusConnection from './Connection'
 import NodusBaseNode from './BaseNode'
 import NodusPort, { NodusPortType } from './Port'
-import { reactive, shallowRef, watch, nextTick, type WatchStopHandle } from 'vue';
+import { reactive, shallowRef, watch, nextTick, markRaw, type WatchStopHandle } from 'vue'
+import NodusConnectionTypeRegistry, {
+    type ConnectionTypeResolver,
+} from './connectionTypes/ConnectionTypeRegistry.js'
+import type NodusHistory from './History'
+import { nodeDisplayName } from './History'
 
 export default class NodusGraph {
     nodes: Map<string, NodusBaseNode> = reactive(new Map())
@@ -9,18 +14,36 @@ export default class NodusGraph {
     selectedPort = shallowRef<NodusPort | null>(null)
     selectedPortIsTouch = shallowRef(false)
     nextZIndex = 1
+    connectionTypeRegistry: NodusConnectionTypeRegistry
+    /** Set by `NodusBoard` so interactive connection creation (`selectPort()`) can push an undo point. */
+    history?: NodusHistory
 
+    private connectionTypeResolver?: ConnectionTypeResolver
     private portToNode: Map<string, NodusBaseNode> = new Map()
     private connectionWatchers: Map<string, WatchStopHandle> = new Map()
     private computingNodes: Set<string> = new Set()
     private dirtyNodes: Set<string> = new Set()
     private flushScheduled: boolean = false
 
-    constructor() { }
+    constructor(connectionTypeRegistry: NodusConnectionTypeRegistry = new NodusConnectionTypeRegistry()) {
+        this.connectionTypeRegistry = connectionTypeRegistry
+        markRaw(this)
+    }
+
+    /**
+     * Register a function that decides which connection type applies to a newly created
+     * connection, based on the two ports being connected. Called only from `selectPort()`
+     * (interactive connection creation) - never for connections added via `addConnection()`,
+     * since those already carry an explicit/persisted type.
+     */
+    registerConnectionTypeResolver(resolver: ConnectionTypeResolver) {
+        this.connectionTypeResolver = resolver
+    }
 
     /** Add a node to the graph. The node's ports are indexed for fast lookup by ID. */
     addNode(node: NodusBaseNode) {
         this.nodes.set(node.id, node)
+        node.graph = this
         for (const port of [...node.inputs, ...node.outputs]) {
             this.portToNode.set(port.id, node)
         }
@@ -31,7 +54,7 @@ export default class NodusGraph {
         const node = this.nodes.get(id)
         if (!node) return
 
-        const portIds = new Set<string>([...node.inputs, ...node.outputs].map(p => p.id))
+        const portIds = new Set<string>([...node.inputs, ...node.outputs].map((p) => p.id))
         for (const [connId, conn] of this.connections) {
             if (portIds.has(conn.sourcePortId) || portIds.has(conn.targetPortId)) {
                 this.removeConnection(connId)
@@ -43,20 +66,20 @@ export default class NodusGraph {
         }
         this.nodes.delete(id)
         this.dirtyNodes.delete(id)
+        node.graph = undefined
     }
 
     /**
      * Create a connection between two ports. Sets up a reactive watcher so the target port
      * value stays in sync with the source, and calls `compute()` on the target node on change.
+     * Calls `onPortConnected()` on both the source and target node.
      * Use `NodusGraph.selectPort()` for interactive connection creation with built-in validation,
      * or call this directly when building connections programmatically (e.g. after deserialization).
      */
     addConnection(conn: NodusConnection) {
-        const sourcePort = this.findPort(conn.sourcePortId)
-        const targetPort = this.findPort(conn.targetPortId)
-        const targetNode = this.portToNode.get(conn.targetPortId)
-
-        if (!sourcePort || !targetPort || !targetNode) return
+        const endpoints = this.resolveEndpoints(conn)
+        if (!endpoints) return
+        const { sourceNode, sourcePort, targetNode, targetPort } = endpoints
 
         this.connections.set(conn.id, conn)
 
@@ -70,20 +93,35 @@ export default class NodusGraph {
                 if (!alreadySynced) {
                     this.markDirty(targetNode.id)
                 }
-            }
+            },
         )
 
         this.connectionWatchers.set(conn.id, stop)
+
+        sourceNode.onPortConnected(sourcePort, targetNode, targetPort)
+        targetNode.onPortConnected(targetPort, sourceNode, sourcePort)
     }
 
-    /** Remove a connection and stop its reactive value watcher. */
+    /**
+     * Remove a connection, stop its reactive value watcher, and call `onPortDisconnected()`
+     * on both the source and target node.
+     */
     removeConnection(id: string) {
+        const conn = this.connections.get(id)
+
         const stop = this.connectionWatchers.get(id)
         if (stop) {
             stop()
             this.connectionWatchers.delete(id)
         }
         this.connections.delete(id)
+
+        const endpoints = conn ? this.resolveEndpoints(conn) : undefined
+        if (!endpoints) return
+        const { sourceNode, sourcePort, targetNode, targetPort } = endpoints
+
+        sourceNode.onPortDisconnected(sourcePort, targetNode, targetPort)
+        targetNode.onPortDisconnected(targetPort, sourceNode, sourcePort)
     }
 
     /** Find the node that owns the given port ID. */
@@ -112,6 +150,17 @@ export default class NodusGraph {
         for (const conn of this.connections.values()) {
             if (conn.sourcePortId !== port.id) continue
             const node = this.portToNode.get(conn.targetPortId)
+            if (node) nodes.push(node)
+        }
+        return nodes
+    }
+
+    /** Return the node(s) directly connected upstream of the given input port (immediate neighbors only). */
+    getSourceNodes(port: NodusPort): NodusBaseNode[] {
+        const nodes: NodusBaseNode[] = []
+        for (const conn of this.connections.values()) {
+            if (conn.targetPortId !== port.id) continue
+            const node = this.portToNode.get(conn.sourcePortId)
             if (node) nodes.push(node)
         }
         return nodes
@@ -158,7 +207,7 @@ export default class NodusGraph {
     private scheduleFlush() {
         if (this.flushScheduled) return
         this.flushScheduled = true
-        nextTick(() => this.flushDirty())
+        void nextTick(() => this.flushDirty())
     }
 
     /** Compute every dirty node once, in topological order. */
@@ -194,33 +243,36 @@ export default class NodusGraph {
         }
 
         if (this.selectedPort.value.id === port.id) {
-            this.setSelectedPort(null);
+            this.setSelectedPort(null)
             return
         }
 
         if (this.selectedPort.value.ioType === port.ioType) {
             const direction = port.ioType === NodusPortType.Input ? 'inputs' : 'outputs'
-            console.warn(`[vue-nodus] Cannot connect: both ports are ${direction}. One must be an input and one an output.`)
-            this.setSelectedPort(null);
+            console.warn(
+                `[vue-nodus] Cannot connect: both ports are ${direction}. One must be an input and one an output.`,
+            )
+            this.setSelectedPort(null)
             return
         }
 
         if (this.selectedPort.value.type !== port.type) {
-            console.warn(`[vue-nodus] Cannot connect: port type "${this.selectedPort.value.type}" is incompatible with "${port.type}".`)
-            this.setSelectedPort(null);
+            console.warn(
+                `[vue-nodus] Cannot connect: port type "${this.selectedPort.value.type}" is incompatible with "${port.type}".`,
+            )
+            this.setSelectedPort(null)
             return
         }
 
         const existing = [...this.connections.values()].find(
-            con =>
+            (con) =>
                 (con.sourcePortId === port.id &&
                     con.targetPortId === this.selectedPort.value?.id) ||
-                (con.targetPortId === port.id &&
-                    con.sourcePortId === this.selectedPort.value?.id)
+                (con.targetPortId === port.id && con.sourcePortId === this.selectedPort.value?.id),
         )
 
         if (existing) {
-            this.setSelectedPort(null);
+            this.setSelectedPort(null)
             return
         }
 
@@ -233,7 +285,15 @@ export default class NodusGraph {
         }
 
         if (this.validateInputPortConnection(target)) {
-            this.addConnection(new NodusConnection(source, target, target.color))
+            const connectionType = this.resolveConnectionType(source, target)
+            const sourceNode = this.portToNode.get(source.id)
+            const targetNode = this.portToNode.get(target.id)
+            const label =
+                sourceNode && targetNode
+                    ? `Connected "${nodeDisplayName(sourceNode)}" and "${nodeDisplayName(targetNode)}"`
+                    : 'Connection created'
+            this.history?.snapshot(label)
+            this.addConnection(new NodusConnection(source, target, target.color, connectionType))
         }
 
         this.setSelectedPort(null)
@@ -255,12 +315,27 @@ export default class NodusGraph {
     private findPort(portId: string): NodusPort | undefined {
         const node = this.portToNode.get(portId)
         if (!node) return undefined
-        return [...node.inputs, ...node.outputs].find(p => p.id === portId)
+        return [...node.inputs, ...node.outputs].find((p) => p.id === portId)
+    }
+
+    /**
+     * Resolve the source/target nodes and ports for a connection.
+     * Returns `undefined` if any endpoint can no longer be found (e.g. torn down already).
+     */
+    private resolveEndpoints(conn: NodusConnection):
+        | { sourceNode: NodusBaseNode; sourcePort: NodusPort; targetNode: NodusBaseNode; targetPort: NodusPort }
+        | undefined {
+        const sourcePort = this.findPort(conn.sourcePortId)
+        const targetPort = this.findPort(conn.targetPortId)
+        const sourceNode = this.portToNode.get(conn.sourcePortId)
+        const targetNode = this.portToNode.get(conn.targetPortId)
+        if (!sourcePort || !targetPort || !sourceNode || !targetNode) return undefined
+        return { sourceNode, sourcePort, targetNode, targetPort }
     }
 
     private syncInputs(node: NodusBaseNode) {
         for (const inputPort of node.inputs) {
-            const conn = [...this.connections.values()].find(c => c.targetPortId === inputPort.id)
+            const conn = [...this.connections.values()].find((c) => c.targetPortId === inputPort.id)
             if (!conn) continue
             const sourcePort = this.findPort(conn.sourcePortId)
             if (sourcePort) {
@@ -314,16 +389,23 @@ export default class NodusGraph {
         return result
     }
 
+    private resolveConnectionType(source: NodusPort, target: NodusPort): string {
+        const resolved = this.connectionTypeResolver?.(source, target)
+        if (resolved === undefined) return 'bezier'
+        return this.connectionTypeRegistry.resolveKeyForClassOrName(resolved)
+    }
+
     private validateInputPortConnection(port: NodusPort) {
         if (port.isMultiport === false) {
-            const value = [...this.connections.values()].find(con => con.targetPortId === port.id)
+            const value = [...this.connections.values()].find((con) => con.targetPortId === port.id)
             if (value) {
-                console.warn(`[vue-nodus] Cannot connect: port "${port.id}" already has a connection. Set isMultiport: true on the port to allow multiple inputs.`)
+                console.warn(
+                    `[vue-nodus] Cannot connect: port "${port.id}" already has a connection. Set isMultiport: true on the port to allow multiple inputs.`,
+                )
                 return false
             }
         }
 
         return true
     }
-
 }
