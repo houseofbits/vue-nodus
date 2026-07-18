@@ -32,7 +32,10 @@ const props = defineProps({
 <style scoped>
 .node-row {
     width: 100%;
-    height: auto;
+    /* 100% (not auto) so content can fill a resizable node's explicit height; a no-op
+       for auto-sized nodes since a percentage against an indeterminate ancestor height
+       resolves to auto anyway. */
+    height: 100%;
     position: relative;
 }
 

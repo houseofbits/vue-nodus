@@ -41,29 +41,11 @@ describe('bezierControlPoints', () => {
         expect(inverted.cp2x).toBeCloseTo(300)
     })
 
-    it('bows cp1y/cp2y symmetrically by the same amount when dy = 0', () => {
-        const { cp1y, cp2y } = bezierControlPoints(0, 50, 100, 50, false)
-        expect(cp1y).toBeCloseTo(50 + 24)
-        expect(cp2y).toBeCloseTo(50 + 24)
-    })
+    it('keeps cp1y/cp2y equal to y1/y2 - no vertical bow', () => {
+        const level = bezierControlPoints(0, 50, 100, 50, false)
+        expect(level.cp1y).toBe(50)
+        expect(level.cp2y).toBe(50)
 
-    it('fades the vertical bow smoothly to zero as dy approaches the falloff distance', () => {
-        const halfway = bezierControlPoints(0, 0, 100, 30, false) // dy = 30, half of the 60px falloff
-        expect(halfway.cp1y).toBeCloseTo(12)
-        expect(halfway.cp2y).toBeCloseTo(30 + 12)
-
-        const nearThreshold = bezierControlPoints(0, 0, 100, 50, false) // dy = 50, near the 60px falloff
-        expect(nearThreshold.cp1y).toBeGreaterThan(0)
-        expect(nearThreshold.cp1y).toBeLessThan(5)
-
-        const atThreshold = bezierControlPoints(0, 0, 100, 60, false) // dy = 60, exactly at the falloff distance
-        expect(atThreshold.cp1y).toBe(0)
-        expect(atThreshold.cp2y).toBe(60)
-    })
-
-    it('does not add any vertical bow once dy is far beyond the falloff distance', () => {
-        // Regression: this must not affect the far-apart-vertically case that the horizontal
-        // overshoot fix already covers.
         const { cp1y, cp2y } = bezierControlPoints(0, 0, 5, 800, false)
         expect(cp1y).toBe(0)
         expect(cp2y).toBe(800)
@@ -71,11 +53,9 @@ describe('bezierControlPoints', () => {
 })
 
 describe('buildBezierPath', () => {
-    it('keeps the sampled curve within a tight tolerance of [x1, x2] and bows vertically when points lie on a horizontal line', () => {
+    it('keeps the sampled curve within a tight tolerance of [x1, x2] when points lie on a horizontal line', () => {
         // Regression: with the old fixed 80px floor, a short horizontal connection (dx=10)
         // overshot to roughly x = -14..24, far outside the [0, 10] span between the ports.
-        // Separately, points on a shared horizontal line should no longer render as a flat
-        // line — the curve should visibly bow away from that shared y.
         const x1 = 0
         const y = 0
         const x2 = 10
@@ -84,17 +64,12 @@ describe('buildBezierPath', () => {
 
         let minX = Infinity
         let maxX = -Infinity
-        let maxY = -Infinity
         for (let t = 0; t <= 1; t += 0.001) {
             const x = cubicBezierAt(t, px1, cp1x, cp2x, px2)
-            const yy = cubicBezierAt(t, py1, cp1y, cp2y, py2)
             minX = Math.min(minX, x)
             maxX = Math.max(maxX, x)
-            maxY = Math.max(maxY, yy)
         }
 
-        // x(t) in a cubic bezier only depends on the x-coordinates, so the vertical bow cannot
-        // reintroduce the horizontal overshoot fixed previously.
         expect(minX).toBeGreaterThanOrEqual(x1 - 1)
         expect(maxX).toBeLessThanOrEqual(x2 + 1)
 
@@ -102,12 +77,9 @@ describe('buildBezierPath', () => {
         expect(py1).toBe(y)
         expect(py2).toBe(y)
 
-        // ...but the control points - and therefore the curve itself - now bow symmetrically
-        // away from the shared line by a bounded, non-trivial amount instead of staying flat.
-        expect(cp1y).toBeCloseTo(y + 24)
-        expect(cp2y).toBeCloseTo(y + 24)
-        expect(maxY - y).toBeGreaterThan(10)
-        expect(maxY - y).toBeLessThanOrEqual(24)
+        // ...and with no vertical bow, the control points stay on that line too.
+        expect(cp1y).toBe(y)
+        expect(cp2y).toBe(y)
     })
 
     it('bounds the horizontal bulge for a long vertical connection with a small horizontal gap', () => {
@@ -144,9 +116,8 @@ describe('getBezierMidpoint', () => {
         expect(mid.y).toBeLessThan(200)
     })
 
-    it('bows away from the shared y for a near-level connection, so the delete marker sits on the visible curve', () => {
+    it('sits exactly on the shared y for a level connection - no vertical bow', () => {
         const mid = getBezierMidpoint(0, 50, 100, 50, false)
-        expect(mid.y).not.toBe(50)
-        expect(mid.y - 50).toBeCloseTo(18) // 0.75 * MAX_VERTICAL_BOW, from the t=0.5 bezier blend
+        expect(mid.y).toBe(50)
     })
 })

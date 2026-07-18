@@ -16,6 +16,7 @@ import { rectsIntersect, type Rect } from './SelectionController.js'
 
 interface InternalState {
     isDraggingNode: boolean
+    isResizingNode: boolean
     isBoxSelecting: boolean
     boxStartX: number
     boxStartY: number
@@ -23,11 +24,16 @@ interface InternalState {
     mouseY: number
 }
 
+/** Node can't be shrunk below this in either dimension while resizing. */
+const MIN_RESIZE_WIDTH = 60
+const MIN_RESIZE_HEIGHT = 40
+
 export default class View {
     graph: NodusGraph
     boardElement: HTMLElement | null = null
     state: InternalState = reactive({
         isDraggingNode: false,
+        isResizingNode: false,
         isBoxSelecting: false,
         boxStartX: 0,
         boxStartY: 0,
@@ -38,6 +44,11 @@ export default class View {
     /** Set by `NodusBoard` so drags, deletes, and keyboard shortcuts can record undo points. */
     history?: NodusHistory
     private dragSnapshotBefore: string | null = null
+    private resizingNode: NodusBaseNode | null = null
+    private resizeStartWorld: Vector2 | null = null
+    private resizeStartWidth = 0
+    private resizeStartHeight = 0
+    private resizeSnapshotBefore: string | null = null
     private boxSelectAdditive = false
     private boxSelectBaseNodes: NodusBaseNode[] = []
     private boxSelectBaseConnections: NodusConnection[] = []
@@ -91,6 +102,18 @@ export default class View {
         this.selection.snapshotPositions()
         this.state.isDraggingNode = true
         this.dragSnapshotBefore = this.history?.captureSnapshot() ?? null
+    }
+
+    /** Select `node` and begin tracking a resize gesture for the current pointer. */
+    nodeResizeStart(node: NodusBaseNode, event: MouseEvent) {
+        this.selectNode(node, event)
+        this.resizingNode = node
+        this.resizeStartWorld = this.viewport.screenToWorld(event.clientX, event.clientY)
+        const size = this.measureNodeSize(node) ?? { width: MIN_RESIZE_WIDTH, height: MIN_RESIZE_HEIGHT }
+        this.resizeStartWidth = size.width
+        this.resizeStartHeight = size.height
+        this.state.isResizingNode = true
+        this.resizeSnapshotBefore = this.history?.captureSnapshot() ?? null
     }
 
     onPointerDown(event: PointerEvent) {
@@ -209,8 +232,8 @@ export default class View {
         this.boxSelectConnectionRects.clear()
     }
 
-    /** World-space bounding box of `node`, measuring the DOM when it auto-sizes. `null` if unmeasurable. */
-    private getNodeWorldRect(node: NodusBaseNode): Rect | null {
+    /** Node's current rendered size, measuring the DOM when it auto-sizes. `null` if unmeasurable. */
+    private measureNodeSize(node: NodusBaseNode): { width: number; height: number } | null {
         let width = node.internalState.width
         let height = node.internalState.height
 
@@ -226,7 +249,15 @@ export default class View {
 
         if (width === null || height === null) return null
 
-        return { x: node.internalState.x, y: node.internalState.y, width, height }
+        return { width, height }
+    }
+
+    /** World-space bounding box of `node`, measuring the DOM when it auto-sizes. `null` if unmeasurable. */
+    private getNodeWorldRect(node: NodusBaseNode): Rect | null {
+        const size = this.measureNodeSize(node)
+        if (!size) return null
+
+        return { x: node.internalState.x, y: node.internalState.y, ...size }
     }
 
     /** World-space bounding box of `connection`'s endpoints. `null` when either port is unmeasured. */
@@ -283,6 +314,18 @@ export default class View {
             this.selection.applyDelta(dx, dy)
         }
 
+        if (this.state.isResizingNode && this.resizingNode && this.resizeStartWorld) {
+            const world = this.viewport.screenToWorld(event.clientX, event.clientY)
+
+            const dx = world.x - this.resizeStartWorld.x
+            const dy = world.y - this.resizeStartWorld.y
+
+            const width = Math.max(MIN_RESIZE_WIDTH, this.resizeStartWidth + dx)
+            const height = Math.max(MIN_RESIZE_HEIGHT, this.resizeStartHeight + dy)
+
+            this.resizingNode.setSize(width, height)
+        }
+
         this.viewport.applyPan(event.clientX, event.clientY)
 
         this.portRegistry.scheduleUpdateAll()
@@ -329,6 +372,15 @@ export default class View {
         this.dragSnapshotBefore = null
 
         this.state.isDraggingNode = false
+
+        if (this.state.isResizingNode && this.resizeSnapshotBefore !== null) {
+            this.history?.commitGesture(this.resizeSnapshotBefore, this.describeResizeLabel())
+        }
+        this.resizeSnapshotBefore = null
+
+        this.state.isResizingNode = false
+        this.resizingNode = null
+        this.resizeStartWorld = null
 
         this.viewport.panStop()
     }
@@ -399,6 +451,11 @@ export default class View {
         const nodes = this.selection.getSelected()
         if (nodes.length === 1) return `Node "${nodeDisplayName(nodes[0].node)}" moved`
         return 'Node group moved'
+    }
+
+    private describeResizeLabel(): string {
+        if (!this.resizingNode) return 'Node resized'
+        return `Node "${nodeDisplayName(this.resizingNode)}" resized`
     }
 
     private describeConnectionLabel(connection: NodusConnection): string {

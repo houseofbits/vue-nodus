@@ -31,6 +31,11 @@ export interface NodusSettingObject {
     width: number | null
     /** Fixed node height in pixels. `null` (default) means auto-size. */
     height: number | null
+    /**
+     * When `true`, `VBaseNode` renders a drag handle in the node's bottom-right corner that lets
+     * the user resize it interactively. `false` by default.
+     */
+    isResizable: boolean
 }
 
 /**
@@ -50,6 +55,7 @@ export default class NodusBaseNode {
     id = crypto.randomUUID()
     isThinComponent: boolean = true
     isPortAutoLayoutEnabled: boolean = true
+    isResizable: boolean = false
     componentId: string
 
     /** The graph this node belongs to. Set by `NodusGraph.addNode()`, cleared by `removeNode()`. */
@@ -83,6 +89,7 @@ export default class NodusBaseNode {
         this.isThinComponent = settings?.isThinComponent ?? this.isThinComponent
         this.isPortAutoLayoutEnabled =
             settings?.isPortAutoLayoutEnabled ?? this.isPortAutoLayoutEnabled
+        this.isResizable = settings?.isResizable ?? this.isResizable
         this.internalState.title = settings?.title ?? this.internalState.title
         this.internalState.width = settings?.width ?? this.internalState.width
         this.internalState.height = settings?.height ?? this.internalState.height
@@ -106,6 +113,11 @@ export default class NodusBaseNode {
     setPosition(x: number, y: number) {
         this.internalState.x = x
         this.internalState.y = y
+    }
+
+    setSize(width: number, height: number) {
+        this.internalState.width = width
+        this.internalState.height = height
     }
 
     /**
