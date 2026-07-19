@@ -12,16 +12,11 @@ const props = defineProps({
 
 <template>
     <div class="py-2.5 text-xs text-gray-600">
+        <VNodeRow :input-port="props.node.inputs[0]">
+            <div class="px-4 py-1 text-black italic">trig in</div>
+        </VNodeRow>
         <VNodeRow :output-port="props.node.outputs[0]">
             <div class="px-4 pb-2 flex flex-col gap-2">
-                <button
-                    class="w-full py-2 rounded bg-emerald-400 text-white font-medium active:bg-emerald-600 select-none"
-                    @mousedown="props.node.trigger()"
-                    @mouseup="props.node.release()"
-                    @mouseleave="props.node.release()"
-                >
-                    Trigger
-                </button>
                 <label class="flex flex-col gap-1">
                     <span class="flex justify-between">
                         <span>Attack</span>

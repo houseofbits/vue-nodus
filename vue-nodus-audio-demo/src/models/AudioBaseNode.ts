@@ -7,6 +7,11 @@ export const PARAM_COLOR = '#fbbf24'
 
 export const AUDIO_PORT_TYPE = 'audio'
 
+/** Port color for clock/trigger connections (tick timing, not an audio signal). */
+export const CLOCK_COLOR = '#38bdf8'
+
+export const CLOCK_PORT_TYPE = 'clock'
+
 /**
  * Base class for nodes that wrap native Web Audio nodes. Mirrors the visual
  * graph onto the live audio graph: every "audio" connection created or removed

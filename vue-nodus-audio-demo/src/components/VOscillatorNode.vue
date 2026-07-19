@@ -72,5 +72,8 @@ const freqSlider = computed({
         <VNodeRow :input-port="props.node.inputs[0]">
             <div class="px-4 py-1 text-black italic">freq mod</div>
         </VNodeRow>
+        <VNodeRow :input-port="props.node.inputs[1]">
+            <div class="px-4 py-1 text-black italic">reset in</div>
+        </VNodeRow>
     </div>
 </template>

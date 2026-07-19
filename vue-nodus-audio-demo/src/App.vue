@@ -18,6 +18,10 @@ import VAudioOutputNode from './components/VAudioOutputNode.vue'
 import AudioOutputNode from './models/AudioOutputNode.ts'
 import VSequencerNode from './components/VSequencerNode.vue'
 import StepSequencerNode from './models/StepSequencerNode.ts'
+import VClockNode from './components/VClockNode.vue'
+import ClockNode from './models/ClockNode.ts'
+import VClockDelayNode from './components/VClockDelayNode.vue'
+import ClockDelayNode from './models/ClockDelayNode.ts'
 import VNoiseNode from './components/VNoiseNode.vue'
 import NoiseSourceNode from './models/NoiseSourceNode.ts'
 import VEnvelopeNode from './components/VEnvelopeNode.vue'
@@ -48,6 +52,8 @@ board.registerComponent('Delay', VDelayNode)
 board.registerComponent('Analyser', VAnalyserNode)
 board.registerComponent('Output', VAudioOutputNode)
 board.registerComponent('Sequencer', VSequencerNode)
+board.registerComponent('Clock', VClockNode)
+board.registerComponent('ClockDelay', VClockDelayNode)
 board.registerComponent('Noise', VNoiseNode)
 board.registerComponent('Envelope', VEnvelopeNode)
 board.registerComponent('Blend', VBlendNode)
@@ -65,6 +71,8 @@ const registry: Record<string, new () => any> = {
   AnalyserDisplayNode,
   AudioOutputNode,
   StepSequencerNode,
+  ClockNode,
+  ClockDelayNode,
   NoiseSourceNode,
   EnvelopeControlNode,
   BlendControlNode,
@@ -83,6 +91,8 @@ const items = [
   { label: 'Analyser', value: 'AnalyserDisplayNode' },
   { label: 'Output', value: 'AudioOutputNode' },
   { label: 'Sequencer', value: 'StepSequencerNode' },
+  { label: 'Clock', value: 'ClockNode' },
+  { label: 'Clock Delay', value: 'ClockDelayNode' },
   { label: 'Noise', value: 'NoiseSourceNode' },
   { label: 'Envelope', value: 'EnvelopeControlNode' },
   { label: 'Blend', value: 'BlendControlNode' },

@@ -1,6 +1,7 @@
-import { NodusPort } from '@houseofbits/vue-nodus'
+import { NodusBaseNode, NodusPort } from '@houseofbits/vue-nodus'
 import { reactive } from 'vue'
-import AudioBaseNode, { AUDIO_PORT_TYPE, PARAM_COLOR } from './AudioBaseNode'
+import AudioBaseNode, { AUDIO_PORT_TYPE, CLOCK_COLOR, CLOCK_PORT_TYPE, PARAM_COLOR } from './AudioBaseNode'
+import ClockSourceNode from './ClockSourceNode'
 import { audioEngine } from '../audio/AudioEngine'
 
 interface InternalState {
@@ -17,6 +18,7 @@ interface InternalState {
 export default class LfoSourceNode extends AudioBaseNode {
     private osc: OscillatorNode
     private depthGain: GainNode
+    private unsubscribeClock: (() => void) | null = null
 
     state: InternalState = reactive({
         waveform: 'sine',
@@ -27,7 +29,7 @@ export default class LfoSourceNode extends AudioBaseNode {
     constructor() {
         super(
             'Lfo',
-            [],
+            [new NodusPort(CLOCK_PORT_TYPE, CLOCK_COLOR)],
             [new NodusPort(AUDIO_PORT_TYPE, PARAM_COLOR)],
             {
                 title: 'LFO',
@@ -58,7 +60,42 @@ export default class LfoSourceNode extends AudioBaseNode {
         return null
     }
 
+    onPortConnected(port: NodusPort, otherNode: NodusBaseNode, otherPort: NodusPort): void {
+        super.onPortConnected(port, otherNode, otherPort)
+        if (port !== this.inputs[0] || !(otherNode instanceof ClockSourceNode)) return
+        this.unsubscribeClock = otherNode.subscribeTick((t) => this.retrigger(t))
+    }
+
+    onPortDisconnected(port: NodusPort, otherNode: NodusBaseNode, otherPort: NodusPort): void {
+        super.onPortDisconnected(port, otherNode, otherPort)
+        if (port !== this.inputs[0]) return
+        this.unsubscribeClock?.()
+        this.unsubscribeClock = null
+    }
+
+    /**
+     * Hard-syncs phase to a clock tick. Without an AudioWorklet, resetting an
+     * OscillatorNode's phase means swapping in a fresh one timed to start
+     * exactly as the old one stops — the `onended` handoff avoids a gap or
+     * double-voice glitch around the switch.
+     */
+    private retrigger(time: number): void {
+        const ctx = audioEngine.context
+        const nextOsc = ctx.createOscillator()
+        nextOsc.type = this.state.waveform
+        nextOsc.frequency.setValueAtTime(this.state.rate, time)
+        nextOsc.connect(this.depthGain)
+        nextOsc.start(time)
+
+        const prevOsc = this.osc
+        prevOsc.stop(time)
+        prevOsc.onended = () => prevOsc.disconnect()
+
+        this.osc = nextOsc
+    }
+
     dispose(): void {
+        this.unsubscribeClock?.()
         try {
             this.osc.stop()
         } catch {
