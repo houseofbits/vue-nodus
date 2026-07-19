@@ -17,6 +17,8 @@ export interface NodusTheme {
     portSize?: string
     portHoverOutlineColor?: string
     portHoverOutlineWidth?: string
+    resizeHandleColor?: string
+    resizeHandleSize?: string
     connectionWidth?: string | number
     connectionSelectionColor?: string
     connectionSelectionWidth?: string | number

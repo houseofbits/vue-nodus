@@ -14,7 +14,9 @@ export default class AnalyserDisplayNode extends AudioBaseNode {
             {
                 title: 'Analyser',
                 isPortAutoLayoutEnabled: false,
+                isResizable: true,
                 width: 320,
+                height: 200,
             },
         )
 

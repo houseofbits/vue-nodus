@@ -1,6 +1,7 @@
-import { NodusPort } from '@houseofbits/vue-nodus'
+import { NodusBaseNode, NodusPort } from '@houseofbits/vue-nodus'
 import { reactive } from 'vue'
-import AudioBaseNode, { AUDIO_PORT_TYPE, PARAM_COLOR, SIGNAL_COLOR } from './AudioBaseNode'
+import AudioBaseNode, { AUDIO_PORT_TYPE, CLOCK_COLOR, CLOCK_PORT_TYPE, PARAM_COLOR, SIGNAL_COLOR } from './AudioBaseNode'
+import ClockSourceNode from './ClockSourceNode'
 import { audioEngine } from '../audio/AudioEngine'
 
 interface InternalState {
@@ -11,6 +12,11 @@ interface InternalState {
 
 export default class OscillatorSourceNode extends AudioBaseNode {
     private osc: OscillatorNode
+    // Stable node identity exposed via getAudioOutput: retrigger() swaps the
+    // oscillator feeding this, so existing downstream connections (wired to
+    // this gain's identity, not the oscillator's) survive a hard-sync.
+    private outputGain: GainNode
+    private unsubscribeClock: (() => void) | null = null
 
     state: InternalState = reactive({
         waveform: 'sawtooth',
@@ -21,7 +27,7 @@ export default class OscillatorSourceNode extends AudioBaseNode {
     constructor() {
         super(
             'Oscillator',
-            [new NodusPort(AUDIO_PORT_TYPE, PARAM_COLOR, true)],
+            [new NodusPort(AUDIO_PORT_TYPE, PARAM_COLOR, true), new NodusPort(CLOCK_PORT_TYPE, CLOCK_COLOR)],
             [new NodusPort(AUDIO_PORT_TYPE, SIGNAL_COLOR)],
             {
                 title: 'Oscillator',
@@ -30,7 +36,9 @@ export default class OscillatorSourceNode extends AudioBaseNode {
             },
         )
 
+        this.outputGain = audioEngine.context.createGain()
         this.osc = audioEngine.context.createOscillator()
+        this.osc.connect(this.outputGain)
         // Started once for the node's whole lifetime (legal while the context
         // is suspended); audibility is governed by connections and the
         // context's running state.
@@ -46,20 +54,57 @@ export default class OscillatorSourceNode extends AudioBaseNode {
     }
 
     getAudioOutput(_port: NodusPort): AudioNode {
-        return this.osc
+        return this.outputGain
     }
 
-    getAudioInputTarget(_port: NodusPort): AudioParam {
-        return this.osc.frequency
+    getAudioInputTarget(port: NodusPort): AudioParam | null {
+        return port === this.inputs[0] ? this.osc.frequency : null
+    }
+
+    onPortConnected(port: NodusPort, otherNode: NodusBaseNode, otherPort: NodusPort): void {
+        super.onPortConnected(port, otherNode, otherPort)
+        if (port !== this.inputs[1] || !(otherNode instanceof ClockSourceNode)) return
+        this.unsubscribeClock = otherNode.subscribeTick((t) => this.retrigger(t))
+    }
+
+    onPortDisconnected(port: NodusPort, otherNode: NodusBaseNode, otherPort: NodusPort): void {
+        super.onPortDisconnected(port, otherNode, otherPort)
+        if (port !== this.inputs[1]) return
+        this.unsubscribeClock?.()
+        this.unsubscribeClock = null
+    }
+
+    /**
+     * Hard-syncs phase to a clock tick. Without an AudioWorklet, resetting an
+     * OscillatorNode's phase means swapping in a fresh one timed to start
+     * exactly as the old one stops — the `onended` handoff avoids a gap or
+     * double-voice glitch around the switch.
+     */
+    private retrigger(time: number): void {
+        const ctx = audioEngine.context
+        const nextOsc = ctx.createOscillator()
+        nextOsc.type = this.state.waveform
+        nextOsc.frequency.setValueAtTime(this.state.frequency, time)
+        nextOsc.detune.setValueAtTime(this.state.detune, time)
+        nextOsc.connect(this.outputGain)
+        nextOsc.start(time)
+
+        const prevOsc = this.osc
+        prevOsc.stop(time)
+        prevOsc.onended = () => prevOsc.disconnect()
+
+        this.osc = nextOsc
     }
 
     dispose(): void {
+        this.unsubscribeClock?.()
         try {
             this.osc.stop()
         } catch {
             // Already stopped.
         }
         this.osc.disconnect()
+        this.outputGain.disconnect()
     }
 
     serialize() {

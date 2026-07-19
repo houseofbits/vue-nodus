@@ -1,6 +1,7 @@
-import { NodusPort } from '@houseofbits/vue-nodus'
+import { NodusBaseNode, NodusPort } from '@houseofbits/vue-nodus'
 import { reactive } from 'vue'
-import AudioBaseNode, { AUDIO_PORT_TYPE, SIGNAL_COLOR } from './AudioBaseNode'
+import AudioBaseNode, { AUDIO_PORT_TYPE, CLOCK_COLOR, CLOCK_PORT_TYPE, SIGNAL_COLOR } from './AudioBaseNode'
+import ClockSourceNode from './ClockSourceNode'
 import { audioEngine } from '../audio/AudioEngine'
 
 interface InternalState {
@@ -12,6 +13,8 @@ interface InternalState {
 export default class DelayControlNode extends AudioBaseNode {
     private delay: DelayNode
     private feedbackGain: GainNode
+    private unsubscribeClock: (() => void) | null = null
+    private lastTickTime: number | null = null
 
     state: InternalState = reactive({
         time: 0.3,
@@ -21,7 +24,7 @@ export default class DelayControlNode extends AudioBaseNode {
     constructor() {
         super(
             'Delay',
-            [new NodusPort(AUDIO_PORT_TYPE, SIGNAL_COLOR, true)],
+            [new NodusPort(AUDIO_PORT_TYPE, SIGNAL_COLOR, true), new NodusPort(CLOCK_PORT_TYPE, CLOCK_COLOR)],
             [new NodusPort(AUDIO_PORT_TYPE, SIGNAL_COLOR)],
             {
                 title: 'Delay',
@@ -37,6 +40,11 @@ export default class DelayControlNode extends AudioBaseNode {
         this.applyParams()
     }
 
+    /** True while a clock is driving delayTime — the Time slider is read-only meanwhile. */
+    get isClockSynced(): boolean {
+        return this.unsubscribeClock !== null
+    }
+
     applyParams(): void {
         const t = audioEngine.context.currentTime
         this.delay.delayTime.setTargetAtTime(this.state.time, t, 0.01)
@@ -47,11 +55,35 @@ export default class DelayControlNode extends AudioBaseNode {
         return this.delay
     }
 
-    getAudioInputTarget(_port: NodusPort): AudioNode {
-        return this.delay
+    getAudioInputTarget(port: NodusPort): AudioNode | null {
+        return port === this.inputs[0] ? this.delay : null
+    }
+
+    onPortConnected(port: NodusPort, otherNode: NodusBaseNode, otherPort: NodusPort): void {
+        super.onPortConnected(port, otherNode, otherPort)
+        if (port !== this.inputs[1] || !(otherNode instanceof ClockSourceNode)) return
+        this.unsubscribeClock = otherNode.subscribeTick((t) => {
+            // The first tick only establishes a baseline — delayTime updates
+            // from the second tick onward, once a real interval is known.
+            if (this.lastTickTime !== null) {
+                const interval = t - this.lastTickTime
+                this.delay.delayTime.setTargetAtTime(interval, t, 0.01)
+            }
+            this.lastTickTime = t
+        })
+    }
+
+    onPortDisconnected(port: NodusPort, otherNode: NodusBaseNode, otherPort: NodusPort): void {
+        super.onPortDisconnected(port, otherNode, otherPort)
+        if (port !== this.inputs[1]) return
+        this.unsubscribeClock?.()
+        this.unsubscribeClock = null
+        this.lastTickTime = null
+        this.applyParams()
     }
 
     dispose(): void {
+        this.unsubscribeClock?.()
         this.delay.disconnect()
         this.feedbackGain.disconnect()
     }

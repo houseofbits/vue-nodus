@@ -141,6 +141,8 @@ const themeVars = computed(() => {
         '--nodus-port-size': t.portSize,
         '--nodus-port-hover-outline-color': t.portHoverOutlineColor,
         '--nodus-port-hover-outline-width': t.portHoverOutlineWidth,
+        '--nodus-resize-handle-color': t.resizeHandleColor,
+        '--nodus-resize-handle-size': t.resizeHandleSize,
         '--nodus-connection-width': t.connectionWidth,
         '--nodus-connection-selection-color': t.connectionSelectionColor,
         '--nodus-connection-selection-width': t.connectionSelectionWidth,

@@ -18,8 +18,22 @@ import VAudioOutputNode from './components/VAudioOutputNode.vue'
 import AudioOutputNode from './models/AudioOutputNode.ts'
 import VSequencerNode from './components/VSequencerNode.vue'
 import StepSequencerNode from './models/StepSequencerNode.ts'
+import VClockNode from './components/VClockNode.vue'
+import ClockNode from './models/ClockNode.ts'
+import VClockDelayNode from './components/VClockDelayNode.vue'
+import ClockDelayNode from './models/ClockDelayNode.ts'
 import VNoiseNode from './components/VNoiseNode.vue'
 import NoiseSourceNode from './models/NoiseSourceNode.ts'
+import VEnvelopeNode from './components/VEnvelopeNode.vue'
+import EnvelopeControlNode from './models/EnvelopeControlNode.ts'
+import VBlendNode from './components/VBlendNode.vue'
+import BlendControlNode from './models/BlendControlNode.ts'
+import VCompressorNode from './components/VCompressorNode.vue'
+import CompressorControlNode from './models/CompressorControlNode.ts'
+import VWaveshaperNode from './components/VWaveshaperNode.vue'
+import WaveshaperControlNode from './models/WaveshaperControlNode.ts'
+import VPannerNode from './components/VPannerNode.vue'
+import PannerControlNode from './models/PannerControlNode.ts'
 import VAudioToolbar from './components/VAudioToolbar.vue'
 import VNodeSelector from './components/VNodeSelector.vue'
 import VHistoryToolbar from './components/VHistoryToolbar.vue'
@@ -38,7 +52,14 @@ board.registerComponent('Delay', VDelayNode)
 board.registerComponent('Analyser', VAnalyserNode)
 board.registerComponent('Output', VAudioOutputNode)
 board.registerComponent('Sequencer', VSequencerNode)
+board.registerComponent('Clock', VClockNode)
+board.registerComponent('ClockDelay', VClockDelayNode)
 board.registerComponent('Noise', VNoiseNode)
+board.registerComponent('Envelope', VEnvelopeNode)
+board.registerComponent('Blend', VBlendNode)
+board.registerComponent('Compressor', VCompressorNode)
+board.registerComponent('Waveshaper', VWaveshaperNode)
+board.registerComponent('Panner', VPannerNode)
 
 const registry: Record<string, new () => any> = {
   OscillatorSourceNode,
@@ -50,7 +71,14 @@ const registry: Record<string, new () => any> = {
   AnalyserDisplayNode,
   AudioOutputNode,
   StepSequencerNode,
+  ClockNode,
+  ClockDelayNode,
   NoiseSourceNode,
+  EnvelopeControlNode,
+  BlendControlNode,
+  CompressorControlNode,
+  WaveshaperControlNode,
+  PannerControlNode,
 }
 
 const items = [
@@ -63,7 +91,14 @@ const items = [
   { label: 'Analyser', value: 'AnalyserDisplayNode' },
   { label: 'Output', value: 'AudioOutputNode' },
   { label: 'Sequencer', value: 'StepSequencerNode' },
+  { label: 'Clock', value: 'ClockNode' },
+  { label: 'Clock Delay', value: 'ClockDelayNode' },
   { label: 'Noise', value: 'NoiseSourceNode' },
+  { label: 'Envelope', value: 'EnvelopeControlNode' },
+  { label: 'Blend', value: 'BlendControlNode' },
+  { label: 'Compressor', value: 'CompressorControlNode' },
+  { label: 'Waveshaper', value: 'WaveshaperControlNode' },
+  { label: 'Panner', value: 'PannerControlNode' },
 ]
 
 function createNodeManually(nodeClass: string) {

@@ -57,6 +57,11 @@ To play notes: wire *pitch out* into an Oscillator's `freq mod` and set the osci
 | Mixer | 4× (`GainNode` → `StereoPannerNode`) → `GainNode` | Four channels with level + pan, summed to one output. |
 | Filter | `BiquadFilterNode` | Lowpass/highpass/bandpass/notch/peaking, log frequency, Q, `freq mod` input. |
 | Delay | `DelayNode` + feedback `GainNode` | Wet-only echo, 0–2 s, feedback 0–0.9. |
+| Envelope | `ConstantSourceNode` | Manually-triggered ADSR; trigger pad, output feeds any amber port (e.g. a Gain's `gain mod`). |
+| Blend | 2× `GainNode` → `GainNode` | Equal-power crossfade between two signals, A at 0 / B at 1. |
+| Compressor | `DynamicsCompressorNode` | Threshold/knee/ratio/attack/release. |
+| Waveshaper | `WaveShaperNode` → `GainNode` | Drive-controlled distortion curve, output level. |
+| Panner | `StereoPannerNode` | Stereo pan, `pan mod` input. |
 | Analyser | `AnalyserNode` | Pass-through oscilloscope drawn on a canvas. |
 | Output | `GainNode` → master | Volume into the engine's master output. Terminal node. |
 
@@ -65,6 +70,7 @@ To play notes: wire *pitch out* into an Oscillator's `freq mod` and set the osci
 - **Music — sequenced groove**: pentatonic bassline through two detuned oscillators, mixer, LFO-swept lowpass, plus a noise hi-hat lane.
 - **Groove — arp, bass & drums**: four sequencer lanes — square-wave arpeggio with a ping-pong echo (Delay), filtered saw bass at half tempo, gated-sine kick, offbeat hats.
 - **Drone — mixer + LFO filter**: no sequencing; two oscillators mixed L/R through an LFO-swept filter.
+- **Nightdrive — new nodes showcase**: driven bass (Waveshaper), a saw+square lead blended through Blend then echoed and auto-panned (Delay, Panner + LFO), four-on-the-floor kick and offbeat hats, all glued by a Compressor on the master bus — plus a manually-triggered pad (Envelope) summed in alongside the mix. Click the pad's "Trigger" button and hold to play it.
 - **New — blank board**: empty canvas to patch from scratch.
 
 Presets are plain serializer JSON registered in `src/demos/index.ts`; switching is undoable (a history snapshot is taken before each load). To author one, build a patch in the app, run `JSON.stringify(board.serializer.serialize())` in the console, and save the result.

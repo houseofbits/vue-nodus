@@ -12,6 +12,9 @@ const props = defineProps({
 
 <template>
     <div class="py-2.5 text-xs text-gray-600">
+        <VNodeRow :input-port="props.node.inputs[0]">
+            <div class="px-4 py-1 text-black italic">reset in</div>
+        </VNodeRow>
         <VNodeRow :output-port="props.node.outputs[0]">
             <div class="px-4 flex flex-col gap-2">
                 <label class="flex items-center justify-between gap-2">

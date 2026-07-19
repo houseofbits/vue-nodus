@@ -26,6 +26,13 @@
                 <VPort v-for="port in props.node.outputs" :key="port.id" :port="port"></VPort>
             </div>
         </template>
+
+        <div
+            v-if="props.node.isResizable"
+            class="nodus-resize-handle"
+            aria-hidden="true"
+            @pointerdown.stop="onResizeStart"
+        ></div>
     </div>
 </template>
 
@@ -57,6 +64,10 @@ const nodeHeight = computed(() => {
 
 function onDelete() {
     board?.view.deleteNode(props.node)
+}
+
+function onResizeStart(event: PointerEvent) {
+    board?.view.nodeResizeStart(props.node, event)
 }
 </script>
 
@@ -167,5 +178,26 @@ function onDelete() {
     .nodus-delete-btn {
         display: inline-flex;
     }
+}
+
+.nodus-resize-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: var(--nodus-resize-handle-size, 18px);
+    height: var(--nodus-resize-handle-size, 18px);
+    cursor: nwse-resize;
+    touch-action: none;
+}
+
+.nodus-resize-handle::after {
+    content: '';
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--nodus-resize-handle-color, rgba(255, 255, 255, 0.85));
+    border-bottom: 2px solid var(--nodus-resize-handle-color, rgba(255, 255, 255, 0.85));
 }
 </style>

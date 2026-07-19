@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { VNodeRow } from '@houseofbits/vue-nodus'
 import StepSequencerNode from '../models/StepSequencerNode'
 
@@ -8,6 +9,14 @@ const props = defineProps({
         required: true,
     },
 })
+
+// While a step's checkbox/note <select> has focus, freeze the playhead
+// highlight instead of re-coloring it every step. The step highlight and a
+// native <select> popup both live in this node; a re-render mid-interaction
+// (e.g. the playhead moving) can shift the note dropdown's layout enough for
+// the browser to dismiss the popup, which reads as "the note won't change"
+// while playing.
+const isEditingStep = ref(false)
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
@@ -23,8 +32,12 @@ const noteOptions = Array.from({ length: 37 }, (_, i) => {
 
 <template>
     <div class="py-2.5 text-xs text-gray-600">
+        <VNodeRow :input-port="props.node.inputs[0]">
+            <div class="px-4 py-1 text-black italic">clock in</div>
+        </VNodeRow>
+
         <div class="px-4 pb-2 grid grid-cols-2 gap-x-4 gap-y-1">
-            <label class="flex flex-col">
+            <label v-if="!props.node.state.clockConnected" class="flex flex-col">
                 <span class="flex justify-between">
                     <span>BPM</span>
                     <span>{{ props.node.state.bpm }}</span>
@@ -38,6 +51,7 @@ const noteOptions = Array.from({ length: 37 }, (_, i) => {
                     v-model.number="props.node.state.bpm"
                 />
             </label>
+            <div v-else class="flex items-end text-sky-500 italic">Synced to clock</div>
             <label class="flex flex-col">
                 <span class="flex justify-between">
                     <span>Level</span>
@@ -92,12 +106,16 @@ const noteOptions = Array.from({ length: 37 }, (_, i) => {
             </label>
         </div>
 
-        <div class="px-4 pb-2 grid grid-cols-8 gap-1">
+        <div
+            class="px-4 pb-2 grid grid-cols-8 gap-1"
+            @focusin="isEditingStep = true"
+            @focusout="isEditingStep = false"
+        >
             <div
                 v-for="(step, i) in props.node.state.steps"
                 :key="i"
                 class="flex flex-col items-center gap-1 rounded p-1 transition-colors"
-                :class="props.node.state.currentStep === i ? 'bg-emerald-200' : 'bg-gray-200/60'"
+                :class="!isEditingStep && props.node.state.currentStep === i ? 'bg-emerald-200' : 'bg-gray-200/60'"
             >
                 <input type="checkbox" class="accent-emerald-500" v-model="step.on" />
                 <select
@@ -116,6 +134,9 @@ const noteOptions = Array.from({ length: 37 }, (_, i) => {
         </VNodeRow>
         <VNodeRow :output-port="props.node.outputs[1]">
             <div class="px-4 py-1 text-right text-black italic">gate out</div>
+        </VNodeRow>
+        <VNodeRow :output-port="props.node.outputs[2]">
+            <div class="px-4 py-1 text-right text-black italic">trig out</div>
         </VNodeRow>
     </div>
 </template>

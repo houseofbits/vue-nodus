@@ -1,11 +1,11 @@
-import { NodusPort } from '@houseofbits/vue-nodus'
+import { NodusBaseNode, NodusPort } from '@houseofbits/vue-nodus'
 import { reactive, watch, type WatchStopHandle } from 'vue'
-import AudioBaseNode, { AUDIO_PORT_TYPE, PARAM_COLOR } from './AudioBaseNode'
+import AudioBaseNode, { AUDIO_PORT_TYPE, CLOCK_COLOR, CLOCK_PORT_TYPE, PARAM_COLOR } from './AudioBaseNode'
+import ClockSourceNode from './ClockSourceNode'
 import { audioEngine } from '../audio/AudioEngine'
+import LookaheadScheduler from '../audio/LookaheadScheduler'
 
 const STEP_COUNT = 8
-const LOOKAHEAD_MS = 25
-const SCHEDULE_AHEAD_S = 0.1
 
 export interface SequencerStep {
     on: boolean
@@ -24,6 +24,13 @@ interface InternalState {
     steps: SequencerStep[]
     /** Playhead position for the UI highlight; not serialized. */
     currentStep: number
+    /**
+     * True once an external clock has ever been wired into `clock in`. Once
+     * set, BPM is ignored/hidden for good — even after the clock is
+     * unplugged — mirroring hardware sequencers that simply stop advancing
+     * without a clock. Not serialized; re-derived when connections restore.
+     */
+    clockConnected: boolean
 }
 
 function midiToHz(note: number): number {
@@ -35,7 +42,14 @@ function midiToHz(note: number): number {
  * ConstantSourceNodes: `pitch out` (absolute note frequency in Hz — feed it
  * to an Oscillator's freq mod with the oscillator's own frequency at 0) and
  * `gate out` (a 0..level amplitude envelope per active step — feed it to a
- * Gain's gain mod with the gain slider at 0).
+ * Gain's gain mod with the gain slider at 0). A third output, `trig out`, is
+ * clock-typed rather than audio-typed (no native Web Audio node behind it) —
+ * it's how a downstream node like EnvelopeControlNode can be connected at
+ * all, since the graph only allows same-type port connections and an
+ * envelope's gate input can't be wired to an `audio`-typed port. `trig out`
+ * fires once per loop, on step 1 only (if it's on) — not on every active
+ * step — so a triggered Envelope acts as a per-bar swell rather than
+ * retriggering on every note.
  *
  * Steps are scheduled on the audio clock with the standard lookahead pattern:
  * a coarse JS interval schedules everything falling in the next 100 ms. The
@@ -45,10 +59,11 @@ function midiToHz(note: number): number {
 export default class StepSequencerNode extends AudioBaseNode {
     private pitchSource: ConstantSourceNode
     private gateSource: ConstantSourceNode
-    private timer: number | null = null
+    private scheduler: LookaheadScheduler
     private stepIndex = 0
-    private nextStepTime = 0
     private stopTransportWatch: WatchStopHandle
+    private unsubscribeClock: (() => void) | null = null
+    private triggerSubscribers = new Set<(onTime: number) => void>()
 
     state: InternalState = reactive({
         bpm: 120,
@@ -58,15 +73,17 @@ export default class StepSequencerNode extends AudioBaseNode {
         level: 1,
         steps: Array.from({ length: STEP_COUNT }, () => ({ on: true, note: 57 })),
         currentStep: -1,
+        clockConnected: false,
     })
 
     constructor() {
         super(
             'Sequencer',
-            [],
+            [new NodusPort(CLOCK_PORT_TYPE, CLOCK_COLOR)],
             [
                 new NodusPort(AUDIO_PORT_TYPE, PARAM_COLOR),
                 new NodusPort(AUDIO_PORT_TYPE, PARAM_COLOR),
+                new NodusPort(CLOCK_PORT_TYPE, CLOCK_COLOR),
             ],
             {
                 title: 'Sequencer',
@@ -82,6 +99,12 @@ export default class StepSequencerNode extends AudioBaseNode {
         this.gateSource.offset.value = 0
         this.pitchSource.start()
         this.gateSource.start()
+
+        this.scheduler = new LookaheadScheduler(
+            () => audioEngine.context.currentTime,
+            (t) => this.advanceStep(t),
+            () => this.stepDuration(),
+        )
 
         // The context clock is the transport: schedule while running, halt on
         // suspend. immediate:true covers nodes created while already running.
@@ -102,8 +125,31 @@ export default class StepSequencerNode extends AudioBaseNode {
         return null
     }
 
+    onPortConnected(port: NodusPort, otherNode: NodusBaseNode, otherPort: NodusPort): void {
+        super.onPortConnected(port, otherNode, otherPort)
+        if (port !== this.inputs[0] || !(otherNode instanceof ClockSourceNode)) return
+        this.state.clockConnected = true
+        this.stopTransport()
+        this.unsubscribeClock = otherNode.subscribeTick((t) => this.advanceStep(t))
+    }
+
+    onPortDisconnected(port: NodusPort, otherNode: NodusBaseNode, otherPort: NodusPort): void {
+        super.onPortDisconnected(port, otherNode, otherPort)
+        if (port !== this.inputs[0]) return
+        this.unsubscribeClock?.()
+        this.unsubscribeClock = null
+        // Per design: stays clock-locked (silent) even once unplugged.
+    }
+
+    /** Registers a step-1 trigger listener; call the returned function to unsubscribe. */
+    subscribeTrigger(cb: (onTime: number) => void): () => void {
+        this.triggerSubscribers.add(cb)
+        return () => this.triggerSubscribers.delete(cb)
+    }
+
     dispose(): void {
         this.stopTransportWatch()
+        this.unsubscribeClock?.()
         this.stopTransport()
         try {
             this.pitchSource.stop()
@@ -116,30 +162,22 @@ export default class StepSequencerNode extends AudioBaseNode {
     }
 
     private startTransport(): void {
-        if (this.timer !== null) return
+        if (this.state.clockConnected) return
         this.stepIndex = 0
-        this.nextStepTime = audioEngine.context.currentTime + 0.05
-        this.timer = window.setInterval(() => this.tick(), LOOKAHEAD_MS)
+        this.scheduler.start()
     }
 
     private stopTransport(): void {
-        if (this.timer !== null) {
-            clearInterval(this.timer)
-            this.timer = null
-        }
+        this.scheduler.stop()
         const t = audioEngine.context.currentTime
         this.gateSource.offset.cancelScheduledValues(t)
         this.gateSource.offset.setTargetAtTime(0, t, 0.01)
         this.state.currentStep = -1
     }
 
-    private tick(): void {
-        const now = audioEngine.context.currentTime
-        while (this.nextStepTime < now + SCHEDULE_AHEAD_S) {
-            this.scheduleStep(this.stepIndex, this.nextStepTime)
-            this.nextStepTime += this.stepDuration()
-            this.stepIndex = (this.stepIndex + 1) % this.state.steps.length
-        }
+    private advanceStep(t: number): void {
+        this.scheduleStep(this.stepIndex, t)
+        this.stepIndex = (this.stepIndex + 1) % this.state.steps.length
     }
 
     /** Step duration in seconds — steps are 16th notes. */
@@ -163,12 +201,11 @@ export default class StepSequencerNode extends AudioBaseNode {
         this.pitchSource.offset.setTargetAtTime(midiToHz(step.note), t, 0.003)
 
         const gate = this.gateSource.offset
+        const offTime = t + this.stepDuration() * this.state.gateLength
         gate.setTargetAtTime(this.state.level, t, Math.max(0.003, this.state.attack / 3))
-        gate.setTargetAtTime(
-            0,
-            t + this.stepDuration() * this.state.gateLength,
-            Math.max(0.01, this.state.release / 3),
-        )
+        gate.setTargetAtTime(0, offTime, Math.max(0.01, this.state.release / 3))
+
+        if (index === 0) this.triggerSubscribers.forEach((cb) => cb(t))
     }
 
     serialize() {
