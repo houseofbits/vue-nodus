@@ -18,7 +18,10 @@ const props = defineProps({
         <VNodeRow :input-port="props.node.inputs[1]">
             <div class="px-4 pb-2 flex flex-col gap-2">
                 <div class="italic text-black">B</div>
-                <label class="flex flex-col gap-1">
+                <label
+                    v-if="props.node.getParents(props.node.inputs[2]).length === 0"
+                    class="flex flex-col gap-1"
+                >
                     <span class="flex justify-between">
                         <span>Blend</span>
                         <span>{{ props.node.state.blend.toFixed(2) }}</span>
@@ -33,7 +36,14 @@ const props = defineProps({
                         @input="props.node.applyParams()"
                     />
                 </label>
+                <div v-else class="flex justify-between">
+                    <span>Blend</span>
+                    <span>{{ props.node.state.blend.toFixed(2) }}</span>
+                </div>
             </div>
+        </VNodeRow>
+        <VNodeRow :input-port="props.node.inputs[2]">
+            <div class="px-4 py-1 text-black italic">blend mod</div>
         </VNodeRow>
     </div>
 </template>
